@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
     <PackageReference Include="VirtoCommerce.Platform.Data" Version="3.876.0" />
+    <PackageReference Include="VirtoCommerce.XOrder.Core" Version="3.900.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VirtoCommerce.XapiExample.Core\VirtoCommerce.XapiExample.Core.csproj" />

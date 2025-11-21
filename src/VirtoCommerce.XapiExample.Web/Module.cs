@@ -15,6 +15,7 @@ using VirtoCommerce.XapiExample.Core;
 using VirtoCommerce.XapiExample.Data.MySql;
 using VirtoCommerce.XapiExample.Data.PostgreSql;
 using VirtoCommerce.XapiExample.Data.Repositories;
+using VirtoCommerce.XapiExample.Data.Services;
 using VirtoCommerce.XapiExample.Data.SqlServer;
 using VirtoCommerce.XapiExample.ExperienceApi;
 
@@ -53,6 +54,8 @@ public class Module : IModule, IHasConfiguration
         });
 
         serviceCollection.AddSingleton<ScopedSchemaFactory<XapiAssemblyMarker>>();
+
+        serviceCollection.AddSingleton<IOrderApproveService, OrderApproveMockService>();
     }
 
     public void PostInitialize(IApplicationBuilder appBuilder)
