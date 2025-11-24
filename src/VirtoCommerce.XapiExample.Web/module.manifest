@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+  <id>VirtoCommerce.XapiExample</id>
+  <version>3.800.0</version>
+  <version-tag></version-tag>
+
+  <platformVersion>3.876.0</platformVersion>
+  <dependencies>
+    <dependency id="VirtoCommerce.Xapi" version="3.904.0" />
+  </dependencies>
+
+  <title>VirtoCommerce XapiExample</title>
+  <description>VirtoCommerce XapiExample</description>
+
+  <authors>
+    <author>Jon Doe</author>
+  </authors>
+  <owners>
+    <owner>VirtoCommerce</owner>
+  </owners>
+
+  <projectUrl>https://github.com/VirtoCommerce/vc-module-xapi-example</projectUrl>
+  <iconUrl>Modules/$(VirtoCommerce.XapiExample)/Content/logo.png</iconUrl>
+  <requireLicenseAcceptance>false</requireLicenseAcceptance>
+
+  <assemblyFile>VirtoCommerce.XapiExample.Web.dll</assemblyFile>
+  <moduleType>VirtoCommerce.XapiExample.Web.Module, VirtoCommerce.XapiExample.Web</moduleType>
+
+  <releaseNotes>First version.</releaseNotes>
+  <copyright>Copyright © 2025 VirtoCommerce. All rights reserved</copyright>
+  <tags>extension module</tags>
+  <useFullTypeNameInSwagger>false</useFullTypeNameInSwagger>
+</module>
