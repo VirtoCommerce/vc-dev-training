@@ -1,22 +1,36 @@
+using System;
 using GraphQL.MicrosoftDI;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VirtoCommerce.CoreModule.Core.Common;
+using VirtoCommerce.HeinekenDemo.Data.Services;
+using VirtoCommerce.OrdersModule.Core.Model;
+using VirtoCommerce.OrdersModule.Core.Services;
+using VirtoCommerce.OrdersModule.Data.Model;
+using VirtoCommerce.OrdersModule.Data.Repositories;
+using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Modularity;
-using VirtoCommerce.Platform.Core.Security;
 using VirtoCommerce.Platform.Core.Settings;
 using VirtoCommerce.Platform.Data.MySql.Extensions;
 using VirtoCommerce.Platform.Data.PostgreSql.Extensions;
 using VirtoCommerce.Platform.Data.SqlServer.Extensions;
 using VirtoCommerce.Xapi.Core.Extensions;
 using VirtoCommerce.Xapi.Core.Infrastructure;
-using VirtoCommerce.XapiExample.Core;
+using VirtoCommerce.XapiExample.Core.Models;
+using VirtoCommerce.XapiExample.Data.Models;
 using VirtoCommerce.XapiExample.Data.MySql;
 using VirtoCommerce.XapiExample.Data.PostgreSql;
 using VirtoCommerce.XapiExample.Data.Repositories;
 using VirtoCommerce.XapiExample.Data.SqlServer;
 using VirtoCommerce.XapiExample.ExperienceApi;
+using VirtoCommerce.XapiExample.ExperienceApi.Aggregates;
+using VirtoCommerce.XapiExample.ExperienceApi.Queries;
+using VirtoCommerce.XapiExample.ExperienceApi.Schemas;
+using VirtoCommerce.XOrder.Core;
+using VirtoCommerce.XOrder.Core.Queries;
+using VirtoCommerce.XOrder.Core.Schemas;
 
 namespace VirtoCommerce.XapiExample.Web;
 
@@ -46,12 +60,15 @@ public class Module : IModule, IHasConfiguration
             }
         });
 
-        // Override models
-        //AbstractTypeFactory<OriginalModel>.OverrideType<OriginalModel, ExtendedModel>().MapToType<ExtendedEntity>();
-        //AbstractTypeFactory<OriginalEntity>.OverrideType<OriginalEntity, ExtendedEntity>();
+        // override models and entities
+        AbstractTypeFactory<IOperation>.OverrideType<CustomerOrder, ExtendedCustomerOrder>();
+        AbstractTypeFactory<CustomerOrderEntity>.OverrideType<CustomerOrderEntity, ExtendedCustomerOrderEntity>();
+        AbstractTypeFactory<CustomerOrder>.OverrideType<CustomerOrder, ExtendedCustomerOrder>()
+            .WithFactory(() => new ExtendedCustomerOrder { OperationType = "CustomerOrder" });
 
-        // Register services
-        //serviceCollection.AddTransient<IMyService, MyService>();
+        // extend aggregate
+        serviceCollection.AddTransient<ExtendedCustomerOrderAggregate>();
+        serviceCollection.AddTransient<Func<CustomerOrderAggregate>>(provider => () => provider.CreateScope().ServiceProvider.GetRequiredService<ExtendedCustomerOrderAggregate>());
 
         // Register GraphQL schema
         _ = new GraphQLBuilder(serviceCollection, builder =>
@@ -59,13 +76,23 @@ public class Module : IModule, IHasConfiguration
             builder.AddSchema(serviceCollection, typeof(XapiAssemblyMarker));
         });
 
+        // types
+        serviceCollection.AddSchemaType<ExtendedCustomerOrderType>().OverrideType<CustomerOrderType, ExtendedCustomerOrderType>(); // override CustomerOrder graph type
+
+        // queries
+        serviceCollection.OverrideQueryType<SearchCustomerOrderQuery, ExtendedSearchCustomerOrderQuery>().WithQueryHandler<ExtendedSearchCustomerOrderQueryHandler>(); // override handler and query argumets by using builder pattern
+
         serviceCollection.AddSingleton<ScopedSchemaFactory<XapiAssemblyMarker>>();
+
+        serviceCollection.AddTransient<IOrderRepository, XapiExampleRepository>();
+        serviceCollection.AddTransient<ICustomerOrderSearchService, ExtendedCustomerOrderSearchService>();
     }
 
     public void PostInitialize(IApplicationBuilder appBuilder)
     {
         var serviceProvider = appBuilder.ApplicationServices;
 
+        /*
         // Register settings
         var settingsRegistrar = serviceProvider.GetRequiredService<ISettingsRegistrar>();
         settingsRegistrar.RegisterSettings(ModuleConstants.Settings.AllSettings, ModuleInfo.Id);
@@ -73,6 +100,7 @@ public class Module : IModule, IHasConfiguration
         // Register permissions
         var permissionsRegistrar = serviceProvider.GetRequiredService<IPermissionsRegistrar>();
         permissionsRegistrar.RegisterPermissions(ModuleInfo.Id, "XapiExample", ModuleConstants.Security.Permissions.AllPermissions);
+        */
 
         // Register partial GraphQL schema
         appBuilder.UseScopedSchema<XapiAssemblyMarker>("xapi-example");
