@@ -12,7 +12,7 @@ using VirtoCommerce.Platform.Core.GenericCrud;
 using VirtoCommerce.XapiExample.Core.Models;
 using VirtoCommerce.XapiExample.Data.Models;
 
-namespace VirtoCommerce.HeinekenDemo.Data.Services;
+namespace VirtoCommerce.XapiExample.Data.Services;
 
 public class ExtendedCustomerOrderSearchService : CustomerOrderSearchService
 {
