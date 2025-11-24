@@ -40,7 +40,7 @@ public class RejectCustomerOrderCommandBuilder : CommandBuilder<RejectCustomerOr
         await base.BeforeMediatorSend(context, request);
     }
 
-    protected override string Name => "rejectOrderActual";
+    protected override string Name => "rejectOrder";
 }
 
 public class RejectCustomerOrderCommandHandler : IRequestHandler<RejectCustomerOrderCommand, ExtendedCustomerOrderAggregate>

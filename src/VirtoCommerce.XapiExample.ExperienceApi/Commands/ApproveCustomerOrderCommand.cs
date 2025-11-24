@@ -33,7 +33,7 @@ public class ApproveCustomerOrderCommandBuilder : CommandBuilder<ApproveCustomer
         _customerOrderService = customerOrderService;
     }
 
-    protected override string Name => "approveOrderActual";
+    protected override string Name => "approveOrder";
 
     protected override async Task BeforeMediatorSend(IResolveFieldContext<object> context, ApproveCustomerOrderCommand request)
     {
