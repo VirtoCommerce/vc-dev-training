@@ -77,7 +77,7 @@ public class InputRejectCustomerOrderCommandType : InputObjectGraphType<RejectCu
 {
     public InputRejectCustomerOrderCommandType()
     {
-        Name = "RejectCustomerOrderCommand";
+        Name = "InputRejectCustomerOrderCommand";
 
         Field(x => x.OrderId).Description("The ID of the customer order to be rejected.");
         Field(x => x.RejectionReason).Description("The reason for rejecting the customer order.");
