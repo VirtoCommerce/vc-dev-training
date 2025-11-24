@@ -81,7 +81,7 @@ public class InputApproveCustomerOrderCommandType : InputObjectGraphType<Approve
 {
     public InputApproveCustomerOrderCommandType()
     {
-        Name = "ApproveCustomerOrderCommand";
+        Name = "InputApproveCustomerOrderCommand";
 
         Field(x => x.OrderId).Description("The ID of the customer order to be approved.");
     }
