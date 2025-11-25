@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  graphqlUrl: 'http://localhost:4000/graphql', // Default development URL
+  graphqlUrl: 'https://vcst-devtraining.govirto.com/graphql', // Default development URL
 };
 
 
