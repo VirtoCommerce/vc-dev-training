@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-    <PackageReference Include="VirtoCommerce.XOrder.Data" Version="3.913.0" />
+    <PackageReference Include="VirtoCommerce.XOrder.Data" Version="3.914.0-alpha.82-extendable-search-handler" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VirtoCommerce.XapiExample.Core\VirtoCommerce.XapiExample.Core.csproj" />

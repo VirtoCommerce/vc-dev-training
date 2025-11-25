@@ -1,11 +1,10 @@
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
+using VirtoCommerce.OrdersModule.Core.Model.Search;
 using VirtoCommerce.OrdersModule.Core.Search.Indexed;
 using VirtoCommerce.OrdersModule.Core.Services;
 using VirtoCommerce.SearchModule.Core.Services;
-using VirtoCommerce.XapiExample.Core.Models;
 using VirtoCommerce.XOrder.Core.Queries;
 using VirtoCommerce.XOrder.Core.Services;
 using VirtoCommerce.XOrder.Data.Queries;
@@ -24,32 +23,31 @@ public class ExtendedSearchCustomerOrderQueryHandler : SearchOrderQueryHandler
         _orderAggregateRepository = customerOrderAggregateRepository;
     }
 
-    public override async Task<SearchOrderResponse> Handle(SearchCustomerOrderQuery request, CancellationToken cancellationToken)
+    public override Task<SearchOrderResponse> Handle(SearchCustomerOrderQuery request, CancellationToken cancellationToken)
     {
-        var response = new SearchOrderResponse()
-        {
-            Facets = [],
-        };
+        return base.Handle(request, cancellationToken);
+    }
+
+    protected override CustomerOrderIndexedSearchCriteria GetOrderIndexedSearchCriteria(SearchOrderQuery request)
+    {
+        var criteria = base.GetOrderIndexedSearchCriteria(request);
 
         if (request is not ExtendedSearchCustomerOrderQuery extendedQuery)
         {
-            return response;
+            return criteria;
         }
 
-        var criteria = new ExtendedCustomerOrderSearchCriteria
+        criteria = AddRejectionReason(criteria, extendedQuery.RejectionReason);
+        return criteria;
+    }
+
+    public CustomerOrderIndexedSearchCriteria AddRejectionReason(CustomerOrderIndexedSearchCriteria searchCriteria, string rejectionReason)
+    {
+        if (!string.IsNullOrEmpty(rejectionReason))
         {
-            CustomerId = extendedQuery.CustomerId,
-            RejectionReason = extendedQuery.RejectionReason,
-            Skip = extendedQuery.Skip,
-            Take = extendedQuery.Take,
-        };
+            searchCriteria.Keyword = $"rejectionreason:\"{rejectionReason}\" {searchCriteria.Keyword}";
+        }
 
-        var searchResult = await _searchService.SearchAsync(criteria);
-        var orderAggregates = await _orderAggregateRepository.GetAggregatesFromOrdersAsync(searchResult.Results.ToList(), request.CultureName);
-
-        response.TotalCount = searchResult.TotalCount;
-        response.Results = orderAggregates;
-
-        return response;
+        return searchCriteria;
     }
 }

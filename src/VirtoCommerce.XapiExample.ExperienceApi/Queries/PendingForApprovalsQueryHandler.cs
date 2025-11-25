@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using VirtoCommerce.OrdersModule.Core.Services;
@@ -30,6 +30,7 @@ public class PendingForApprovalsQueryHandler : IQueryHandler<PendingForApprovals
         var criteria = new ExtendedCustomerOrderSearchCriteria
         {
             CustomerId = request.ApproverId,
+            Status = "PendingApproval",
             Skip = request.Skip,
             Take = request.Take,
         };
