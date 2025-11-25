@@ -45,11 +45,11 @@ public class SelectServiceCommandHandlerTests
             .Setup(x => x.GetAggregatesFromOrdersAsync(It.IsAny<IList<CustomerOrder>>(), It.IsAny<string>()))
             .ReturnsAsync(new List<CustomerOrderAggregate> { customerOrderAggregate });
 
-        var request = new ExtendedSearchCustomerOrderQuery()
+        var request = new PendingForApprovalsQuery()
         {
         };
 
-        var handler = new ExtendedSearchCustomerOrderQueryHandler(null, aggregateRepositoryMock.Object, null, null, searchServiceMock.Object);
+        var handler = new PendingForApprovalsQueryHandler(searchServiceMock.Object, aggregateRepositoryMock.Object);
 
         // Act
         var results = await handler.Handle(request, CancellationToken.None);
