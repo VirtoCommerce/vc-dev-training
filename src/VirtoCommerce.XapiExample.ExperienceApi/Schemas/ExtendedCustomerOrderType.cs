@@ -8,6 +8,7 @@ using VirtoCommerce.XOrder.Core.Schemas;
 
 namespace VirtoCommerce.XapiExample.ExperienceApi.Schemas;
 
+//[GraphQLMetadata("CustomerOrderType")]
 public class ExtendedCustomerOrderType : CustomerOrderType
 {
     public ExtendedCustomerOrderType(IDynamicPropertyResolverService dynamicPropertyResolverService, IPaymentMethodsSearchService paymentMethodsSearchService, ILocalizableSettingService localizableSettingService)
