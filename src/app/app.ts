@@ -1,12 +1,11 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core';
+import { OrdersListComponent } from './orders/orders-list.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  imports: [OrdersListComponent],
+  template: `<app-orders-list />`,
+  styleUrl: './app.css',
 })
-export class App {
-  protected readonly title = signal('x-api-training');
-}
+export class App {}
+
