@@ -1,7 +1,0 @@
-npm install -g graphql-cli
-
-graphql get-schema --endpoint https://vcst-devtraining.govirto.com/graphql -o schema.json
-
-npx get-graphql-schema https://vcst-devtraining.govirto.com/graphql > schema.graphql
-
-Get-Content schema.graphql | Out-File -Encoding UTF8 schemaUTF8.graphql
