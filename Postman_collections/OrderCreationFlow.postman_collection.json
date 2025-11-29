@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "b3f3e1ca-3390-4492-96f9-ec52cdff5f8c",
+		"_postman_id": "ddab7389-e97c-4969-beaf-971366f47d45",
 		"name": "OrderCreationFlow",
 		"description": "HAR To Postman Generated Collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -76,6 +76,510 @@
 							"path": [
 								"connect",
 								"token"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Remove data",
+			"item": [
+				{
+					"name": "deleteUser",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Tests for DeleteUsers GraphQL mutation response",
+									"// Validates success path and provides clear messages on failure.",
+									"",
+									"// 1) HTTP status is 200",
+									"pm.test(\"HTTP status is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// 2) Response body is valid JSON",
+									"let json;",
+									"pm.test(\"Response body is valid JSON\", function () {",
+									"    try {",
+									"        json = pm.response.json();",
+									"        pm.expect(json).to.be.an(\"object\");",
+									"    } catch (e) {",
+									"        pm.expect.fail(\"Response is not valid JSON: \" + e.message);",
+									"    }",
+									"});",
+									"",
+									"// Guard: Ensure we have a parsed JSON object for subsequent tests",
+									"if (typeof json !== 'object' || json === null) {",
+									"    // Stop further tests to avoid noisy failures",
+									"    throw new Error(\"Stopping tests: response is not valid JSON.\");",
+									"}",
+									"",
+									"// 3) GraphQL top-level errors array should be absent",
+									"pm.test(\"GraphQL errors array is absent (no top-level errors)\", function () {",
+									"    pm.expect(json).to.not.have.property(\"errors\", \"Top-level GraphQL errors present\");",
+									"});",
+									"",
+									"",
+									"// Prepare a safe reference for deeper assertions",
+									"const del = json && json.data ? json.data.deleteUsers : undefined;",
+									"",
+									"// 5) succeeded is boolean",
+									"pm.test(\"'succeeded' is a boolean\", function () {",
+									"    pm.expect(del, \"'deleteUsers' should be an object\").to.be.an(\"object\");",
+									"    pm.expect(Object.prototype.hasOwnProperty.call(del, \"succeeded\"), \"Missing 'succeeded' field\").to.eql(true);",
+									"    pm.expect(typeof del.succeeded, \"'succeeded' should be boolean\").to.eql(\"boolean\");",
+									"});",
+									"",
+									"// 6) succeeded is true",
+									"pm.test(\"'succeeded' is true\", function () {",
+									"    pm.expect(Boolean(del && del.succeeded), \"Expected 'succeeded' to be true\").to.eql(true);",
+									"});",
+									"",
+									"// 7) errors is an array",
+									"pm.test(\"'errors' is an array\", function () {",
+									"    pm.expect(del, \"'deleteUsers' should be an object\").to.be.an(\"object\");",
+									"    pm.expect(Object.prototype.hasOwnProperty.call(del, \"errors\"), \"Missing 'errors' field\").to.eql(true);",
+									"    pm.expect(Array.isArray(del.errors), \"'errors' should be an array\").to.eql(true);",
+									"});",
+									"",
+									"// 8) errors array length is 0 when succeeded is true",
+									"pm.test(\"'errors' array is empty when succeeded is true\", function () {",
+									"    if (del && del.succeeded === true) {",
+									"        pm.expect(del.errors.length, \"Expected no errors when deletion succeeds\").to.eql(0);",
+									"    } else {",
+									"        pm.expect.fail(\"Cannot assert empty errors because 'succeeded' is not true\");",
+									"    }",
+									"});",
+									"",
+									"// 9) Save 'succeeded' to environment variable 'lastDeleteSucceeded'",
+									"pm.test(\"Save 'succeeded' to env var 'lastDeleteSucceeded'\", function () {",
+									"    const valueToSave = del && typeof del.succeeded === 'boolean' ? String(del.succeeded) : \"\";",
+									"    pm.environment.set(\"lastDeleteSucceeded\", valueToSave);",
+									"    pm.expect(pm.environment.get(\"lastDeleteSucceeded\"), \"Environment variable 'lastDeleteSucceeded' should be set\").to.eql(String(del && del.succeeded));",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation DeleteUsers {\r\n    deleteUsers(command: { userNames: [\"{{userName}}\"] }) {\r\n        succeeded\r\n        errors {\r\n            code\r\n            description\r\n        }\r\n    }\r\n}\r\n",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteContact",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validate status code",
+									"pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+									"",
+									"// Validate response is JSON",
+									"pm.test('Response is valid JSON', function () { pm.response.to.be.json; });",
+									"",
+									"// Validate GraphQL deleteContact mutation result",
+									"pm.test('deleteContact returned true', function () {",
+									"    var json = pm.response.json();",
+									"    pm.expect(json).to.have.property('data');",
+									"    pm.expect(json.data).to.have.property('deleteContact');",
+									"    pm.expect(json.data.deleteContact).to.eql(true);",
+									"});",
+									"",
+									"// Set/update env var based on mutation result",
+									"try {",
+									"    var json = pm.response.json();",
+									"    if (json && json.data && json.data.deleteContact === true) {",
+									"        pm.environment.set('lastDeleteSucceeded', 'true');",
+									"    } else {",
+									"        pm.environment.set('lastDeleteSucceeded', 'false');",
+									"    }",
+									"} catch (e) {",
+									"    // If parsing fails, set to false",
+									"    pm.environment.set('lastDeleteSucceeded', 'false');",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation DeleteContact {\r\n    deleteContact(command: { contactId: \"{{contactId}}\" })\r\n}\r\n",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteOrganization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/members?ids={{organizationId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"members"
+							],
+							"query": [
+								{
+									"key": "ids",
+									"value": "{{organizationId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get Contact",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Body is undefined\", function () {\r",
+									"    var jsonbody = pm.response.body;\r",
+									"    pm.expect(jsonbody).to.be.undefined;\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json, text/plain, */*"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/members/{{contactId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"members",
+								"{{contactId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Tests for POST {{baseUrl}}/api/members/search using {{userName}}",
+									"// Validates status, headers, response shape, timings, and per-item fields",
+									"",
+									"let json;",
+									"",
+									"pm.test(\"Response body is valid JSON\", function () {",
+									"    let isJSON = true;",
+									"    try {",
+									"        json = pm.response.json();",
+									"    } catch (e) {",
+									"        isJSON = false;",
+									"    }",
+									"    pm.expect(isJSON, \"Response body is not valid JSON\").to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Content-Type header contains application/json\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\");",
+									"    const ct = pm.response.headers.get(\"Content-Type\") || \"\";",
+									"    pm.expect(ct.toLowerCase()).to.include(\"application/json\");",
+									"});",
+									"",
+									"pm.test(\"Response time is < 1000 ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});",
+									"",
+									"pm.test(\"Response JSON has totalCount (number) and results (array)\", function () {",
+									"    // Ensure json is parsed even if earlier test skipped parsing",
+									"    if (json === undefined) {",
+									"        json = pm.response.json();",
+									"    }",
+									"    pm.expect(json).to.be.an(\"object\");",
+									"    pm.expect(json).to.have.property(\"totalCount\");",
+									"    pm.expect(json.totalCount, \"totalCount should be a number\").to.be.a(\"number\");",
+									"    pm.expect(json).to.have.property(\"results\");",
+									"    pm.expect(json.results, \"results should be an array\").to.be.an(\"array\");",
+									"});",
+									"",
+									"pm.test(\"totalCount = 0\", function () {",
+									"    if (json === undefined) {",
+									"        json = pm.response.json();",
+									"    }",
+									"    if (json && typeof json.totalCount === \"number\" && Array.isArray(json.results) && json.totalCount == 0) {",
+									"    pm.expect(json.totalCount, \"totalCount should be 0 when there are no results\").to.be.eql(0);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json, text/plain, */*"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"memberId\": null,\r\n    \"keyword\": \"postman-test123@mail.com\",\r\n    \"deepSearch\": false,\r\n    \"sort\": \"\",\r\n    \"skip\": 0,\r\n    \"take\": 20,\r\n    \"objectType\": \"Member\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/members/search",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"members",
+								"search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get Organization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Tests for POST {{baseUrl}}/api/members/search using {{userName}}",
+									"// Validates status, headers, response shape, timings, and per-item fields",
+									"",
+									"let json;",
+									"",
+									"pm.test(\"Response body is valid JSON\", function () {",
+									"    let isJSON = true;",
+									"    try {",
+									"        json = pm.response.json();",
+									"    } catch (e) {",
+									"        isJSON = false;",
+									"    }",
+									"    pm.expect(isJSON, \"Response body is not valid JSON\").to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Content-Type header contains application/json\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\");",
+									"    const ct = pm.response.headers.get(\"Content-Type\") || \"\";",
+									"    pm.expect(ct.toLowerCase()).to.include(\"application/json\");",
+									"});",
+									"",
+									"pm.test(\"Response time is < 1000 ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});",
+									"",
+									"pm.test(\"Response JSON has totalCount (number) and results (array)\", function () {",
+									"    // Ensure json is parsed even if earlier test skipped parsing",
+									"    if (json === undefined) {",
+									"        json = pm.response.json();",
+									"    }",
+									"    pm.expect(json).to.be.an(\"object\");",
+									"    pm.expect(json).to.have.property(\"totalCount\");",
+									"    pm.expect(json.totalCount, \"totalCount should be a number\").to.be.a(\"number\");",
+									"    pm.expect(json).to.have.property(\"results\");",
+									"    pm.expect(json.results, \"results should be an array\").to.be.an(\"array\");",
+									"    pm.expect(json.results, \"results should be an empty\").to.be.empty;",
+									"});",
+									"",
+									"pm.test(\"totalCount = 0\", function () {",
+									"    if (json === undefined) {",
+									"        json = pm.response.json();",
+									"    }",
+									"    if (json && typeof json.totalCount === \"number\" && Array.isArray(json.results) && json.totalCount == 0) {",
+									"    pm.expect(json.totalCount, \"totalCount should be 0 when there are no results\").to.be.eql(0);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json, text/plain, */*"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"memberId\": \"{{organizationId}}\",\r\n    \"deepSearch\": false,\r\n    \"sort\": \"\",\r\n    \"skip\": 0,\r\n    \"take\": 20,\r\n    \"objectType\": \"Member\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/members/search",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"members",
+								"search"
 							]
 						}
 					},
@@ -196,7 +700,7 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "mutation RequestRegistration {\r\n    requestRegistration(\r\n        command: {\r\n            storeId: \"{{storeId}}\"\r\n            languageCode: \"{{cultureName}}\"\r\n            organization: { name: \"Postman-{{$randomCompanyName}}\" }\r\n            contact: { firstName: \"{{$randomFirstName}}\", lastName: \"Postman\" }\r\n            account: {\r\n            password: \"{{userPassword}}\", \r\n            username: \"postman-test123@mail.com\" ,\r\n            email: \"postman-test123@mail.com\"\r\n        }\r\n        }\r\n    ) {\r\n        organization {\r\n            id\r\n            name\r\n        }\r\n        contact {\r\n            id\r\n            firstName\r\n            lastName\r\n            \r\n        }\r\n        result {\r\n            succeeded\r\n            errors {\r\n                code\r\n                parameter\r\n                description\r\n            }\r\n        }\r\n    }\r\n}",
+								"query": "mutation RequestRegistration {\r\n    requestRegistration(\r\n        command: {\r\n            storeId: \"{{storeId}}\"\r\n            languageCode: \"{{cultureName}}\"\r\n            organization: { name: \"Postman-{{$randomCompanyName}}\" }\r\n            contact: { firstName: \"{{$randomFirstName}}\", lastName: \"Postman\" }\r\n            account: {\r\n            password: \"{{userPassword}}\", \r\n            username: \"{{userName}}\" ,\r\n            email: \"{{userName}}\"\r\n        }\r\n        }\r\n    ) {\r\n        organization {\r\n            id\r\n            name\r\n        }\r\n        contact {\r\n            id\r\n            firstName\r\n            lastName\r\n            \r\n        }\r\n        result {\r\n            succeeded\r\n            errors {\r\n                code\r\n                parameter\r\n                description\r\n            }\r\n        }\r\n    }\r\n}",
 								"variables": ""
 							}
 						},
@@ -1922,6 +2426,134 @@
 					"response": []
 				},
 				{
+					"name": "Check status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1) Status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// 2) Content-Type header contains application/json OR GraphQL JSON media type",
+									"pm.test(\"Content-Type is JSON (application/json or application/graphql-response+json)\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\");",
+									"    const ct = (pm.response.headers.get(\"Content-Type\") || \"\").toLowerCase();",
+									"    pm.expect(ct).to.satisfy(function (val) {",
+									"        return val.includes(\"application/json\") || val.includes(\"application/graphql-response+json\");",
+									"    }, \"Content-Type should be application/json or application/graphql-response+json\");",
+									"});",
+									"",
+									"// 3) Response is valid JSON object",
+									"let json;",
+									"pm.test(\"Response has valid JSON object\", function () {",
+									"    try {",
+									"        json = pm.response.json();",
+									"        pm.expect(json, \"Root should be an object\").to.be.an(\"object\");",
+									"    } catch (e) {",
+									"        pm.expect.fail(\"Response body is not valid JSON: \" + e.message);",
+									"    }",
+									"});",
+									"",
+									"// 4) GraphQL: no top-level errors or errors is an empty array",
+									"pm.test(\"Response has no GraphQL errors\", function () {",
+									"    const hasErrorsProp = json && Object.prototype.hasOwnProperty.call(json, \"errors\");",
+									"    if (hasErrorsProp) {",
+									"        const errs = json.errors;",
+									"        pm.expect(errs, \"errors should be an array when present\").to.be.an(\"array\");",
+									"        pm.expect(errs.length, \"errors array should be empty\").to.equal(0);",
+									"    } else {",
+									"        pm.expect(hasErrorsProp, \"errors property not present, which is acceptable\").to.be.false;",
+									"    }",
+									"});",
+									"",
+									"// 5) data.pendingForApprovals exists as object",
+									"pm.test(\"data.pendingForApprovals exists\", function () {",
+									"    pm.expect(json, \"json root object\").to.have.property(\"data\").that.is.an(\"object\");",
+									"    pm.expect(json.data, \"data object\").to.have.property(\"pendingForApprovals\").that.is.an(\"object\");",
+									"});",
+									"",
+									"// 6) totalCount number, items array, and equality with items.length",
+									"let pfa;",
+									"pm.test(\"totalCount is number and equals items.length\", function () {",
+									"    pfa = json && json.data && json.data.pendingForApprovals;",
+									"    pm.expect(pfa, \"pendingForApprovals object\").to.be.an(\"object\");",
+									"    pm.expect(pfa, \"pendingForApprovals has totalCount\").to.have.property(\"totalCount\");",
+									"    pm.expect(pfa.totalCount, \"totalCount is a number\").to.be.a(\"number\");",
+									"    pm.expect(pfa, \"pendingForApprovals has items\").to.have.property(\"items\").that.is.an(\"array\");",
+									"    pm.expect(pfa.totalCount, \"totalCount equals items.length\").to.equal(pfa.items.length);",
+									"});",
+									"",
+									"// 7) Each item schema validations with guard for empty items",
+									"pm.test(\"Each item has required fields and valid types (guarded)\", function () {",
+									"    const items = (pfa && Array.isArray(pfa.items)) ? pfa.items : [];",
+									"    if (items.length === 0) {",
+									"        // Guard: skip schema checks when no items",
+									"        console.info(\"No items returned; skipping item schema assertions.\");",
+									"        pm.expect(items.length, \"No items to validate\").to.equal(0);",
+									"        return;",
+									"    }",
+									"",
+									"    const allowedStatuses = [\"New\", \"Approved\", \"Rejected\"];",
+									"    items.forEach(function (it, idx) {",
+									"        pm.expect(it, \"item #\" + idx + \" should be an object\").to.be.an(\"object\");",
+									"",
+									"        pm.expect(it, \"item #\" + idx + \" has id\").to.have.property(\"id\");",
+									"        pm.expect(it.id, \"item #\" + idx + \" id is a non-empty string\").to.be.a(\"string\").and.to.have.length.greaterThan(0);",
+									"",
+									"        pm.expect(it, \"item #\" + idx + \" has isApproved\").to.have.property(\"isApproved\");",
+									"        pm.expect(it.isApproved, \"item #\" + idx + \" isApproved is boolean\").to.be.a(\"boolean\");",
+									"",
+									"        pm.expect(it, \"item #\" + idx + \" has status\").to.have.property(\"status\");",
+									"        pm.expect(it.status, \"item #\" + idx + \" status is a string\").to.be.a(\"string\");",
+									"        pm.expect([\"New\",\"Approved\",\"Rejected\"], \"item #\" + idx + \" status is allowed\").to.include(it.status);",
+									"",
+									"        pm.expect(it, \"item #\" + idx + \" has storeId\").to.have.property(\"storeId\");",
+									"        pm.expect(it.storeId, \"item #\" + idx + \" storeId is a non-empty string\").to.be.a(\"string\").and.to.have.length.greaterThan(0);",
+									"    });",
+									"});",
+									"",
+									"// 8) Set env var lastDeleteSucceeded only if totalCount === 0",
+									"pm.test(\"Set lastDeleteSucceeded env var when totalCount is 0\", function () {",
+									"    if (pfa && typeof pfa.totalCount === \"number\" && pfa.totalCount === 0) {",
+									"        pm.environment.set(\"lastDeleteSucceeded\", true);",
+									"    } else {",
+									"        // Ensure we don't leave stale truthy flag when there are items",
+									"        pm.environment.unset(\"lastDeleteSucceeded\");",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query PendingForApprovals {\r\n    pendingForApprovals(approverId: \"User3\") {\r\n        totalCount\r\n        items {\r\n            id\r\n            isApproved\r\n            status\r\n            storeId\r\n        }\r\n    }\r\n}\r\n",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "rejectOrder",
 					"event": [
 						{
@@ -2010,6 +2642,134 @@
 							"graphql": {
 								"query": "mutation rejectOrder($command: InputRejectCustomerOrderCommand!) {\r\n  rejectOrder(command:$command) {\r\n    id\r\n    status\r\n    isApproved\r\n  }\r\n}",
 								"variables": "{\r\n  \"command\": {\r\n    \"orderId\": \"6\"\r\n  }\r\n}"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1) Status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// 2) Content-Type header contains application/json OR GraphQL JSON media type",
+									"pm.test(\"Content-Type is JSON (application/json or application/graphql-response+json)\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\");",
+									"    const ct = (pm.response.headers.get(\"Content-Type\") || \"\").toLowerCase();",
+									"    pm.expect(ct).to.satisfy(function (val) {",
+									"        return val.includes(\"application/json\") || val.includes(\"application/graphql-response+json\");",
+									"    }, \"Content-Type should be application/json or application/graphql-response+json\");",
+									"});",
+									"",
+									"// 3) Response is valid JSON object",
+									"let json;",
+									"pm.test(\"Response has valid JSON object\", function () {",
+									"    try {",
+									"        json = pm.response.json();",
+									"        pm.expect(json, \"Root should be an object\").to.be.an(\"object\");",
+									"    } catch (e) {",
+									"        pm.expect.fail(\"Response body is not valid JSON: \" + e.message);",
+									"    }",
+									"});",
+									"",
+									"// 4) GraphQL: no top-level errors or errors is an empty array",
+									"pm.test(\"Response has no GraphQL errors\", function () {",
+									"    const hasErrorsProp = json && Object.prototype.hasOwnProperty.call(json, \"errors\");",
+									"    if (hasErrorsProp) {",
+									"        const errs = json.errors;",
+									"        pm.expect(errs, \"errors should be an array when present\").to.be.an(\"array\");",
+									"        pm.expect(errs.length, \"errors array should be empty\").to.equal(0);",
+									"    } else {",
+									"        pm.expect(hasErrorsProp, \"errors property not present, which is acceptable\").to.be.false;",
+									"    }",
+									"});",
+									"",
+									"// 5) data.pendingForApprovals exists as object",
+									"pm.test(\"data.pendingForApprovals exists\", function () {",
+									"    pm.expect(json, \"json root object\").to.have.property(\"data\").that.is.an(\"object\");",
+									"    pm.expect(json.data, \"data object\").to.have.property(\"pendingForApprovals\").that.is.an(\"object\");",
+									"});",
+									"",
+									"// 6) totalCount number, items array, and equality with items.length",
+									"let pfa;",
+									"pm.test(\"totalCount is number and equals items.length\", function () {",
+									"    pfa = json && json.data && json.data.pendingForApprovals;",
+									"    pm.expect(pfa, \"pendingForApprovals object\").to.be.an(\"object\");",
+									"    pm.expect(pfa, \"pendingForApprovals has totalCount\").to.have.property(\"totalCount\");",
+									"    pm.expect(pfa.totalCount, \"totalCount is a number\").to.be.a(\"number\");",
+									"    pm.expect(pfa, \"pendingForApprovals has items\").to.have.property(\"items\").that.is.an(\"array\");",
+									"    pm.expect(pfa.totalCount, \"totalCount equals items.length\").to.equal(pfa.items.length);",
+									"});",
+									"",
+									"// 7) Each item schema validations with guard for empty items",
+									"pm.test(\"Each item has required fields and valid types (guarded)\", function () {",
+									"    const items = (pfa && Array.isArray(pfa.items)) ? pfa.items : [];",
+									"    if (items.length === 0) {",
+									"        // Guard: skip schema checks when no items",
+									"        console.info(\"No items returned; skipping item schema assertions.\");",
+									"        pm.expect(items.length, \"No items to validate\").to.equal(0);",
+									"        return;",
+									"    }",
+									"",
+									"    const allowedStatuses = [\"New\", \"Approved\", \"Rejected\"];",
+									"    items.forEach(function (it, idx) {",
+									"        pm.expect(it, \"item #\" + idx + \" should be an object\").to.be.an(\"object\");",
+									"",
+									"        pm.expect(it, \"item #\" + idx + \" has id\").to.have.property(\"id\");",
+									"        pm.expect(it.id, \"item #\" + idx + \" id is a non-empty string\").to.be.a(\"string\").and.to.have.length.greaterThan(0);",
+									"",
+									"        pm.expect(it, \"item #\" + idx + \" has isApproved\").to.have.property(\"isApproved\");",
+									"        pm.expect(it.isApproved, \"item #\" + idx + \" isApproved is boolean\").to.be.a(\"boolean\");",
+									"",
+									"        pm.expect(it, \"item #\" + idx + \" has status\").to.have.property(\"status\");",
+									"        pm.expect(it.status, \"item #\" + idx + \" status is a string\").to.be.a(\"string\");",
+									"        pm.expect([\"New\",\"Approved\",\"Rejected\"], \"item #\" + idx + \" status is allowed\").to.include(it.status);",
+									"",
+									"        pm.expect(it, \"item #\" + idx + \" has storeId\").to.have.property(\"storeId\");",
+									"        pm.expect(it.storeId, \"item #\" + idx + \" storeId is a non-empty string\").to.be.a(\"string\").and.to.have.length.greaterThan(0);",
+									"    });",
+									"});",
+									"",
+									"// 8) Set env var lastDeleteSucceeded only if totalCount === 0",
+									"pm.test(\"Set lastDeleteSucceeded env var when totalCount is 0\", function () {",
+									"    if (pfa && typeof pfa.totalCount === \"number\" && pfa.totalCount === 0) {",
+									"        pm.environment.set(\"lastDeleteSucceeded\", true);",
+									"    } else {",
+									"        // Ensure we don't leave stale truthy flag when there are items",
+									"        pm.environment.unset(\"lastDeleteSucceeded\");",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query PendingForApprovals {\r\n    pendingForApprovals(approverId: \"User3\") {\r\n        totalCount\r\n        items {\r\n            id\r\n            isApproved\r\n            status\r\n            storeId\r\n        }\r\n    }\r\n}\r\n",
+								"variables": ""
 							}
 						},
 						"url": {
@@ -2447,6 +3207,111 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "get Organization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Tests for POST {{baseUrl}}/api/members/search using {{userName}}",
+									"// Validates status, headers, response shape, timings, and per-item fields",
+									"",
+									"let json;",
+									"",
+									"pm.test(\"Response body is valid JSON\", function () {",
+									"    let isJSON = true;",
+									"    try {",
+									"        json = pm.response.json();",
+									"    } catch (e) {",
+									"        isJSON = false;",
+									"    }",
+									"    pm.expect(isJSON, \"Response body is not valid JSON\").to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Content-Type header contains application/json\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\");",
+									"    const ct = pm.response.headers.get(\"Content-Type\") || \"\";",
+									"    pm.expect(ct.toLowerCase()).to.include(\"application/json\");",
+									"});",
+									"",
+									"pm.test(\"Response time is < 1000 ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});",
+									"",
+									"pm.test(\"Response JSON has totalCount (number) and results (array)\", function () {",
+									"    // Ensure json is parsed even if earlier test skipped parsing",
+									"    if (json === undefined) {",
+									"        json = pm.response.json();",
+									"    }",
+									"    pm.expect(json).to.be.an(\"object\");",
+									"    pm.expect(json).to.have.property(\"totalCount\");",
+									"    pm.expect(json.totalCount, \"totalCount should be a number\").to.be.a(\"number\");",
+									"    pm.expect(json).to.have.property(\"results\");",
+									"    pm.expect(json.results, \"results should be an array\").to.be.an(\"array\");",
+									"    pm.expect(json.results, \"results should be an empty\").to.be.empty;",
+									"});",
+									"",
+									"pm.test(\"totalCount = 0\", function () {",
+									"    if (json === undefined) {",
+									"        json = pm.response.json();",
+									"    }",
+									"    if (json && typeof json.totalCount === \"number\" && Array.isArray(json.results) && json.totalCount == 0) {",
+									"    pm.expect(json.totalCount, \"totalCount should be 0 when there are no results\").to.be.eql(0);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json, text/plain, */*"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"memberId\": \"{{organizationId}}\",\r\n    \"deepSearch\": false,\r\n    \"sort\": \"\",\r\n    \"skip\": 0,\r\n    \"take\": 20,\r\n    \"objectType\": \"Member\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/members/search",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"members",
+								"search"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
@@ -2482,7 +3347,7 @@
 		},
 		{
 			"key": "userName",
-			"value": "mutykovaelena@gmail.com"
+			"value": "postman-test123@mail.com"
 		},
 		{
 			"key": "userPassword",
