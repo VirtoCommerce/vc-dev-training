@@ -1,0 +1,2552 @@
+{
+	"info": {
+		"_postman_id": "b3f3e1ca-3390-4492-96f9-ec52cdff5f8c",
+		"name": "OrderCreationFlow",
+		"description": "HAR To Postman Generated Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "15325423"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Admin token set",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"  // Basic status assertion\r",
+									"  pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"  });\r",
+									"  // Store tokens to collection variables when present\r",
+									"  pm.test(\"Set adminToken and refreshToken globals variables when present\", function () {\r",
+									"    var json = pm.response.json();\r",
+									"    pm.globals.set('adminToken', json.access_token);\r",
+									"    pm.globals.set('adminRefresh_token', json.refresh_token)\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "grant_type=password&scope=offline_access&username={{adminName}}&password={{adminPassword}}",
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/connect/token",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connect",
+								"token"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Create order",
+			"item": [
+				{
+					"name": "RequestRegistration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Tests for RequestRegistration GraphQL mutation",
+									"// Validates HTTP response, GraphQL envelope, and important fields",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has JSON content-type\", function () {",
+									"  pm.response.to.have.header(\"Content-Type\");",
+									"  const ct = pm.response.headers.get(\"Content-Type\") || \"\";",
+									"  pm.expect(ct.toLowerCase()).to.include(\"application/graphql-response+json\");",
+									"});",
+									"",
+									"let body, gqlErrors;",
+									"",
+									"pm.test(\"Response body is valid JSON\", function () {",
+									"  body = pm.response.json();",
+									"  pm.expect(body).to.be.an(\"object\");",
+									"});",
+									"",
+									"// GraphQL top-level errors array should not be present or should be empty",
+									"pm.test(\"No GraphQL errors at top-level\", function () {",
+									"  gqlErrors = body && body.errors;",
+									"  if (gqlErrors !== undefined) {",
+									"    pm.expect(gqlErrors, \"errors should be an empty array when present\").to.be.an(\"array\").that.is.empty;",
+									"  } else {",
+									"    pm.expect(gqlErrors).to.be.undefined;",
+									"  }",
+									"});",
+									"",
+									"// Validate data envelope and path",
+									"pm.test(\"data.requestRegistration is present\", function () {",
+									"  pm.expect(body).to.have.property(\"data\");",
+									"  pm.expect(body.data).to.be.an(\"object\");",
+									"  pm.expect(body.data).to.have.property(\"requestRegistration\");",
+									"  pm.expect(body.data.requestRegistration).to.be.an(\"object\");",
+									"});",
+									"",
+									"const rr = () => (body && body.data ? body.data.requestRegistration : undefined);",
+									"",
+									"// Validate result.succeeded and errors shape",
+									"pm.test(\"result.succeeded is true and errors array exists\", function () {",
+									"  const res = rr();",
+									"  pm.expect(res).to.have.property(\"result\").that.is.an(\"object\");",
+									"  pm.expect(res.result).to.have.property(\"succeeded\").that.is.a(\"boolean\");",
+									"  pm.expect(res.result.succeeded, \"Registration should succeed\").to.eql(true);",
+									"  pm.expect(res.result).to.have.property(\"errors\").that.is.an(\"array\");",
+									"  // If provided, validate each error object shape",
+									"  res.result.errors.forEach((e, i) => {",
+									"    pm.expect(e, `errors[${i}]`).to.be.an(\"object\");",
+									"    if (e.code !== undefined) pm.expect(e.code).to.be.a(\"string\");",
+									"    if (e.parameter !== undefined) pm.expect(e.parameter).to.be.a(\"string\");",
+									"    if (e.description !== undefined) pm.expect(e.description).to.be.a(\"string\");",
+									"  });",
+									"});",
+									"",
+									"// Validate organization object",
+									"pm.test(\"organization has id (UUID-like) and name (non-empty string)\", function () {",
+									"  const res = rr();",
+									"  pm.expect(res).to.have.property(\"organization\").that.is.an(\"object\");",
+									"  const org = res.organization;",
+									"  pm.expect(org).to.have.property(\"id\").that.is.a(\"string\");",
+									"  pm.expect(org.id).to.match(/^[0-9a-fA-F-]{8,}$/); // loose UUID-like check",
+									"  pm.expect(org).to.have.property(\"name\").that.is.a(\"string\").and.not.empty;",
+									"});",
+									"",
+									"// Validate contact object",
+									"pm.test(\"contact has firstName and lastName (non-empty strings)\", function () {",
+									"  const res = rr();",
+									"  pm.expect(res).to.have.property(\"contact\").that.is.an(\"object\");",
+									"  const c = res.contact;",
+									"  pm.collectionVariables.set(\"contactId\", c.id);",
+									"  console.log(\"contactId = \" + c.id)",
+									"  pm.expect(c).to.have.property(\"firstName\").that.is.a(\"string\").and.not.empty;",
+									"  pm.expect(c).to.have.property(\"lastName\").that.is.a(\"string\").and.not.empty;});",
+									"",
+									"",
+									"pm.test(\"Summary: Registration successful and set organizationId\", function () {",
+									"  const res = rr();",
+									"  var data = pm.response.json();  ",
+									"  pm.expect(!!res && res.result && res.result.succeeded === true).to.eql(true);",
+									"    pm.collectionVariables.set(\"organizationId\", data.data.requestRegistration.organization.id);",
+									"    console.log(\"organizationId = \" + data.data.requestRegistration.organization.id)",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation RequestRegistration {\r\n    requestRegistration(\r\n        command: {\r\n            storeId: \"{{storeId}}\"\r\n            languageCode: \"{{cultureName}}\"\r\n            organization: { name: \"Postman-{{$randomCompanyName}}\" }\r\n            contact: { firstName: \"{{$randomFirstName}}\", lastName: \"Postman\" }\r\n            account: {\r\n            password: \"{{userPassword}}\", \r\n            username: \"postman-test123@mail.com\" ,\r\n            email: \"postman-test123@mail.com\"\r\n        }\r\n        }\r\n    ) {\r\n        organization {\r\n            id\r\n            name\r\n        }\r\n        contact {\r\n            id\r\n            firstName\r\n            lastName\r\n            \r\n        }\r\n        result {\r\n            succeeded\r\n            errors {\r\n                code\r\n                parameter\r\n                description\r\n            }\r\n        }\r\n    }\r\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sign-in",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"  // Basic status assertion",
+									"  pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"  });",
+									"  // Store tokens to collection variables when present",
+									"  pm.test(\"Set userToken and refreshToken collection variables when present\", function () {",
+									"    var json = pm.response.json();",
+									"    pm.environment.set('userToken', json.access_token);",
+									"    pm.environment.set('userRefresh_token', json.refresh_token)",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"protocolVersion": "http2",
+						"disableCookies": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "password"
+								},
+								{
+									"key": "scope",
+									"value": "offline_access"
+								},
+								{
+									"key": "storeId",
+									"value": "{{storeId}}"
+								},
+								{
+									"key": "username",
+									"value": "{{userName}}"
+								},
+								{
+									"key": "password",
+									"value": "{{userPassword}}"
+								},
+								{
+									"key": "organization_id",
+									"value": "{{organizationId}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/connect/token",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connect",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetUser",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse JSON response safely",
+									"let json;",
+									"try {",
+									"  json = pm.response.json();",
+									"} catch (e) {",
+									"  json = null;",
+									"}",
+									"",
+									"// Assert status is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Assert body has expected id",
+									"pm.test(\"Response contains expected user id\", function () {",
+									"  pm.expect(json, \"Response body should be JSON\").to.be.an(\"object\");",
+									"  pm.expect(json).to.have.property(\"id\");",
+									"});",
+									"",
+									"// If conditions met, save id to collection variable 'userId' for OrderCreationFlow",
+									"if (pm.response.code === 200) {",
+									"  pm.collectionVariables.set(\"userId\", json.id);",
+									"  console.log(\"Saved collection variable 'userId' =\", json.id);",
+									"} else {",
+									"  console.log(\"Did not save 'userId'. Status:\", pm.response.code, \"id:\", json && json.id);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json, text/plain, */*"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/platform/security/users/{{userName}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"platform",
+								"security",
+								"users",
+								"{{userName}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetMe",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([201, 200]);",
+									"});",
+									"",
+									"pm.test(\"Compare organizationId\", function () {",
+									"    let jsonData;",
+									"    jsonData = pm.response.json();",
+									"    const contact = jsonData && jsonData.data && jsonData.data.me && jsonData.data.me.contact;",
+									"    const orgIdInResponse = contact && contact.organizationId;",
+									"    const orgIdVar = pm.collectionVariables.get(\"organizationId\");",
+									"    pm.expect(orgIdInResponse, \"contact.organizationId should equal collection variable organizationId\").to.eql(orgIdVar);",
+									"});",
+									"",
+									"pm.test(\"Summary: response structure valid\", function () {",
+									"  let res;",
+									"  try {",
+									"    res = pm.response.json();",
+									"  } catch (e) {",
+									"    pm.expect.fail(\"Response is not valid JSON\");",
+									"    return;",
+									"  }",
+									"",
+									"  const me = res && res.data && res.data.me;",
+									"  pm.expect(me, \"data.me should be present\").to.exist;",
+									"  if (!me) return; // Stop further checks if me is missing",
+									"",
+									"  // userName check",
+									"  const userNameVar = pm.collectionVariables.get(\"userName\");",
+									"  if (typeof userNameVar === 'undefined' || userNameVar === null || userNameVar === '') {",
+									"    pm.test(\"userName collection variable not set - assertion skipped\", function () {",
+									"      pm.expect(true).to.be.true;",
+									"    });",
+									"  } else {",
+									"    pm.expect(me.userName, \"me.userName should equal collection variable userName\").to.eql(userNameVar);",
+									"  }",
+									"",
+									"  // contact.organizationId check",
+									"  const contact = me.contact;",
+									"  const contactOrgId = contact && contact.organizationId;",
+									"  const orgIdVar = pm.collectionVariables.get(\"organizationId\");",
+									"  pm.expect(contact, \"me.contact should be present\").to.exist;",
+									"",
+									"  if (typeof orgIdVar === 'undefined' || orgIdVar === null || orgIdVar === '') {",
+									"    pm.test(\"organizationId collection variable not set - assertion skipped\", function () {",
+									"      pm.expect(true).to.be.true;",
+									"    });",
+									"  } else {",
+									"    pm.expect(contactOrgId, \"me.contact.organizationId should equal collection variable organizationId\").to.eql(orgIdVar);",
+									"  }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query Me {\r\n    me(userId: \"{{userId}}\") {\r\n        accessFailedCount\r\n        email\r\n        emailConfirmed\r\n        id\r\n        isAdministrator\r\n        lockoutEnabled\r\n        memberId\r\n        permissions\r\n        securityStamp\r\n        storeId\r\n        twoFactorEnabled\r\n        userName\r\n        userType\r\n        passwordExpired\r\n        forcePasswordChange\r\n        passwordExpiryInDays\r\n        lockedState\r\n        contact {\r\n            id\r\n            outerId\r\n            memberType\r\n            name\r\n            status\r\n            phones\r\n            emails\r\n            groups\r\n            seoObjectType\r\n            firstName\r\n            lastName\r\n            middleName\r\n            fullName      \r\n            defaultLanguage\r\n            currencyCode   \r\n            organizationId\r\n            selectedAddressId\r\n            organizationsIds\r\n        }\r\n        operator {\r\n            accessFailedCount\r\n            createdDate\r\n            email\r\n            emailConfirmed\r\n            id\r\n            isAdministrator\r\n            lockoutEnabled\r\n            memberId   \r\n            permissions\r\n            securityStamp\r\n            storeId      \r\n            userName\r\n            userType\r\n            passwordExpired\r\n            forcePasswordChange\r\n            passwordExpiryInDays\r\n            lockedState\r\n        }\r\n    }\r\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetShortCart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200]);",
+									"});",
+									"",
+									"pm.test(\"GraphQL response has data.cart === null\", function () {",
+									"    const body = pm.response.json();",
+									"",
+									"    // Defensive checks for GraphQL envelope",
+									"    pm.expect(body).to.be.an(\"object\");",
+									"    pm.expect(body).to.have.property(\"data\");",
+									"",
+									"    // Validate cart is null",
+									"    pm.expect(body.data).to.be.an(\"object\");",
+									"    pm.expect(body.data).to.have.property(\"cart\");",
+									"    pm.expect(body.data.cart).to.equal(null);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query GetShortCart($storeId: String!, $userId: String!, $currencyCode: String!, $cultureName: String, $cartId: String) {\r\ncart(\r\nstoreId: $storeId userId: $userId currencyCode: $currencyCode cultureName: $cultureName cartId: $cartId)\r\n    {\r\n        ...shortCart\r\n        __typename\r\n    }\r\n    }\r\n        fragment cartId on CartType {\r\n            id\r\n            __typename\r\n        }\r\n        fragment shortLineItem on LineItemType {\r\n            id\r\n            sku\r\n            quantity\r\n            productId\r\n            __typename\r\n        }\r\n        fragment validationError on ValidationErrorType {\r\n            errorCode\r\n            errorMessage\r\n            errorParameters {\r\n                key\r\n                value\r\n                __typename         \r\n            }\r\n        }\r\n            fragment shortCart on CartType {\r\n                ...cartId\r\n                itemsQuantity\r\n                items {\r\n                    ...shortLineItem\r\n                    __typename\r\n                }\r\n                validationErrors(ruleSet:\"*\") {\r\n                        ...validationError\r\n                        __typename\r\n\r\n                    }\r\n                    shipments {\r\n                        id\r\n                        __typename\r\n                    }\r\n                    __typename\r\n}",
+								"variables": "{\r\n  \"storeId\": \"{{storeId}}\",\r\n  \"cultureName\": \"en-US\",\r\n  \"currencyCode\": \"USD\",\r\n  \"userId\": \"{{userId}}\"\r\n }"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Products",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Products GraphQL response tests",
+									"",
+									"// 1) Basic status and shape checks",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"let bodyText = pm.response.text();",
+									"let json;",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"  try {",
+									"    json = pm.response.json();",
+									"    pm.expect(json).to.be.an(\"object\");",
+									"  } catch (e) {",
+									"    // Force a failure with message",
+									"    throw new Error(\"Response is not valid JSON: \" + e.message + \"\\nBody: \" + bodyText);",
+									"  }",
+									"});",
+									"",
+									"// 5) Handle GraphQL errors explicitly",
+									"pm.test(\"GraphQL has no errors\", function () {",
+									"  if (json && Array.isArray(json.errors) && json.errors.length) {",
+									"    // Log all errors for easier debugging and fail the test",
+									"    console.error(\"GraphQL errors:\", JSON.stringify(json.errors, null, 2));",
+									"    throw new Error(\"GraphQL returned errors (see console for details). Count: \" + json.errors.length);",
+									"  }",
+									"  pm.expect(json && !json.errors).to.be.true;",
+									"});",
+									"",
+									"// Safely navigate to items",
+									"const items = json && json.data && json.data.products && Array.isArray(json.data.products.items)",
+									"  ? json.data.products.items",
+									"  : undefined;",
+									"",
+									"pm.test(\"data.products.items is an array with >= 3 items\", function () {",
+									"  if (!Array.isArray(items)) {",
+									"    throw new Error(\"data.products.items is not an array or missing\");",
+									"  }",
+									"  pm.expect(items.length, \"Expected at least 3 items, got \" + items.length).to.be.at.least(3);",
+									"});",
+									"",
+									"// 2) Extract first three product ids",
+									"let selectedIds = [];",
+									"if (Array.isArray(items)) {",
+									"  for (let i = 0; i < Math.min(3, items.length); i++) {",
+									"    const idVal = items[i] && (items[i].id || items[i].code || items[i].productId);",
+									"    selectedIds.push(idVal);",
+									"  }",
+									"}",
+									"",
+									"// 5) Resilience and descriptive failure when < 3 items or missing ids",
+									"pm.test(\"Collected 3 non-empty product ids\", function () {",
+									"  if (!Array.isArray(selectedIds) || selectedIds.length < 3) {",
+									"    throw new Error(\"Could not collect 3 product ids. Collected: \" + JSON.stringify(selectedIds));",
+									"  }",
+									"  selectedIds.forEach((val, idx) => {",
+									"    pm.expect(typeof val, `Product id at index ${idx} should be a string`).to.equal(\"string\");",
+									"    pm.expect(val, `Product id at index ${idx} should be non-empty`).to.have.length.above(0);",
+									"  });",
+									"});",
+									"",
+									"// 3) Set collection variables (only if changed) and 4) assert variables exist and are non-empty",
+									"function setIfChanged(key, newValue) {",
+									"  const current = pm.collectionVariables.get(key);",
+									"  if (current !== newValue) {",
+									"    pm.collectionVariables.set(key, newValue);",
+									"  }",
+									"}",
+									"",
+									"const [id1, id2, id3] = selectedIds;",
+									"",
+									"// Only set when we have valid ids",
+									"if (selectedIds.length >= 3 && selectedIds.every(v => typeof v === \"string\" && v.length > 0)) {",
+									"  setIfChanged(\"productId_1\", id1);",
+									"  setIfChanged(\"productId_2\", id2);",
+									"  setIfChanged(\"productId_3\", id3);",
+									"",
+									"  const idsArrayString = JSON.stringify([id1, id2, id3]);",
+									"  setIfChanged(\"productIds\", idsArrayString);",
+									"}",
+									"",
+									"// 4) Assertions for variables being set and non-empty",
+									"pm.test(\"productId_1, productId_2, productId_3 variables set and non-empty\", function () {",
+									"  const v1 = pm.collectionVariables.get(\"productId_1\");",
+									"  const v2 = pm.collectionVariables.get(\"productId_2\");",
+									"  const v3 = pm.collectionVariables.get(\"productId_3\");",
+									"  pm.expect(v1).to.be.a(\"string\").and.to.have.length.above(0);",
+									"  pm.expect(v2).to.be.a(\"string\").and.to.have.length.above(0);",
+									"  pm.expect(v3).to.be.a(\"string\").and.to.have.length.above(0);",
+									"});",
+									"",
+									"pm.test(\"productIds collection variable is a JSON array string of 3 ids\", function () {",
+									"  const idsStr = pm.collectionVariables.get(\"productIds\");",
+									"  pm.expect(idsStr).to.be.a(\"string\").and.to.have.length.above(0);",
+									"  let parsed;",
+									"  try {",
+									"    parsed = JSON.parse(idsStr);",
+									"  } catch (e) {",
+									"    throw new Error(\"productIds is not valid JSON: \" + e.message + \". Value: \" + idsStr);",
+									"  }",
+									"  pm.expect(parsed).to.be.an(\"array\").with.lengthOf(3);",
+									"  parsed.forEach((val, idx) => {",
+									"    pm.expect(val).to.be.a(\"string\").and.to.have.length.above(0);",
+									"    pm.expect(val, `productIds[${idx}] should match extracted id`).to.equal(selectedIds[idx]);",
+									"  });",
+									"});",
+									"",
+									"// 7) Console logging of selected ids",
+									"console.log(\"Selected product ids:\", selectedIds);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query Products {\r\n    products(\r\n        after: \"0\"\r\n        first: 16\r\n        storeId: \"{{storeId}}\"\r\n        userId: \"{{userId}}\"\r\n        currencyCode: \"{{currencyCode}}\"\r\n        cultureName: \"{{cultureName}}\"\r\n        filter: \"{{filter}}\"\r\n    ) {\r\n        totalCount\r\n        items {\r\n            id\r\n            code\r\n            catalogId\r\n            productType\r\n            minQuantity\r\n            maxQuantity\r\n            packSize\r\n            relevanceScore\r\n            isConfigurable\r\n            outline\r\n            slug\r\n            name\r\n            imgSrc\r\n            brandName\r\n            hasVariations\r\n            inWishlist\r\n            wishlistIds\r\n            isPurchased\r\n            seoInfo {\r\n                semanticUrl\r\n                pageTitle\r\n                metaDescription\r\n                imageAltDescription\r\n                metaKeywords\r\n                isActive\r\n                languageCode\r\n            }\r\n            minVariationPrice {\r\n                discountPercent\r\n                currency\r\n                pricelistId\r\n                pricelistName\r\n                minQuantity\r\n                discountAmount {\r\n                    amount\r\n                    formattedAmount            \r\n                }\r\n                list {\r\n                    amount             \r\n                    formattedAmount   \r\n                }\r\n                sale {\r\n                    amount\r\n                    decimalDigits\r\n                    formattedAmount               \r\n                }\r\n                actual {\r\n                    amount             \r\n                    formattedAmount           \r\n                }\r\n            }\r\n            prices {\r\n                discountPercent\r\n                currency\r\n                pricelistId\r\n                pricelistName\r\n                minQuantity\r\n                list {\r\n                    amount                \r\n                    formattedAmount              \r\n                }\r\n            }\r\n            properties {\r\n                id\r\n                name\r\n                hidden\r\n                multivalue\r\n                displayOrder\r\n                label\r\n                propertyType\r\n                propertyValueType\r\n                value\r\n                valueDisplayOrder\r\n                valueId\r\n                colorCode\r\n            }\r\n        }\r\n        filter_facets {\r\n            name\r\n            label\r\n            order\r\n            facetType\r\n            count\r\n        }\r\n        range_facets {\r\n            name\r\n            label\r\n            order\r\n            facetType\r\n        }\r\n        term_facets {\r\n            name\r\n            label\r\n            order\r\n            facetType\r\n            terms {\r\n                count\r\n                term\r\n                isSelected\r\n                label\r\n            }\r\n        }\r\n        filters {\r\n            name\r\n            filterType\r\n            isGenerated\r\n            label\r\n        }\r\n    }\r\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateCartQuantity",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validate HTTP status is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Validate Content-Type is JSON",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"  pm.response.to.have.header(\"Content-Type\");",
+									"  const ct = pm.response.headers.get(\"Content-Type\") || \"\";",
+									"  pm.expect(ct.toLowerCase()).to.include(\"application/graphql-response+json\");",
+									"});",
+									"",
+									"let json;",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"  let isJson = true;",
+									"  try {",
+									"    json = pm.response.json();",
+									"  } catch (e) {",
+									"    isJson = false;",
+									"  }",
+									"  pm.expect(isJson, \"Response body should be valid JSON\").to.be.true;",
+									"});",
+									"",
+									"// Defensive accessors",
+									"function get(obj, path, defaultValue) {",
+									"  return path.split('.').reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined), obj) ?? defaultValue;",
+									"}",
+									"",
+									"// If GraphQL errors are present, fail with messages",
+									"pm.test(\"No GraphQL errors present\", function () {",
+									"  if (!json) {",
+									"    return pm.expect.fail(\"JSON not parsed\");",
+									"  }",
+									"  const errs = json.errors;",
+									"  if (Array.isArray(errs) && errs.length) {",
+									"    const messages = errs.map(e => (e && (e.message || JSON.stringify(e)))).join(\" | \");",
+									"    pm.expect.fail(\"GraphQL errors: \" + messages);",
+									"  } else {",
+									"    pm.expect(true).to.be.true;",
+									"  }",
+									"});",
+									"",
+									"// Validate presence of data.updateCartQuantity object",
+									"pm.test(\"data.updateCartQuantity object exists\", function () {",
+									"  pm.expect(json && json.data, \"data field missing\").to.be.an(\"object\");",
+									"  pm.expect(get(json, 'data.updateCartQuantity'), \"data.updateCartQuantity missing\").to.be.an(\"object\");",
+									"});",
+									"",
+									"const ucq = json && get(json, 'data.updateCartQuantity');",
+									"",
+									"// Field type validations",
+									"pm.test(\"updateCartQuantity fields have correct types\", function () {",
+									"  pm.expect(ucq, \"updateCartQuantity should be object\").to.be.an(\"object\");",
+									"  if (!ucq) { return; }",
+									"  pm.expect(ucq).to.have.property(\"id\").that.is.a(\"string\");",
+									"  pm.expect(ucq).to.have.property(\"isAnonymous\").that.is.a(\"boolean\");",
+									"  pm.expect(ucq).to.have.property(\"customerName\").that.is.a(\"string\");",
+									"  pm.expect(ucq).to.have.property(\"itemsCount\");",
+									"  pm.expect(ucq.itemsCount).to.satisfy(v => typeof v === 'number', 'itemsCount should be number');",
+									"  pm.expect(ucq).to.have.property(\"itemsQuantity\");",
+									"  pm.expect(ucq.itemsQuantity).to.satisfy(v => typeof v === 'number', 'itemsQuantity should be number');",
+									"});",
+									"",
+									"// UUID-like validation for id",
+									"pm.test(\"id looks like UUID\", function () {",
+									"  if (!ucq || typeof ucq.id !== 'string') { return pm.expect.fail('id missing or not string'); }",
+									"  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;",
+									"  pm.expect(uuidRegex.test(ucq.id), 'id should be UUID-like').to.be.true;",
+									"});",
+									"",
+									"// itemsCount and itemsQuantity constraints (>=0 and integers)",
+									"pm.test(\"itemsCount and itemsQuantity are non-negative integers\", function () {",
+									"  if (!ucq) { return pm.expect.fail('updateCartQuantity missing'); }",
+									"  const intsOk = Number.isInteger(ucq.itemsCount) && Number.isInteger(ucq.itemsQuantity);",
+									"  pm.expect(intsOk, 'itemsCount and itemsQuantity should be integers').to.be.true;",
+									"  pm.expect(ucq.itemsCount, 'itemsCount should be >= 0').to.be.at.least(0);",
+									"  pm.expect(ucq.itemsQuantity, 'itemsQuantity should be >= 0').to.be.at.least(0);",
+									"});",
+									"",
+									"// Save key fields as collection variables with defensive checks",
+									"if (ucq && typeof ucq === 'object') {",
+									"  if (typeof ucq.id === 'string') {",
+									"    pm.collectionVariables.set('cartId', ucq.id);",
+									"  }",
+									"  if (typeof ucq.itemsCount === 'number') {",
+									"    pm.collectionVariables.set('cartItemsCount', String(ucq.itemsCount));",
+									"  }",
+									"  if (typeof ucq.itemsQuantity === 'number') {",
+									"    pm.collectionVariables.set('cartItemsQuantity', String(ucq.itemsQuantity));",
+									"  }",
+									"  if (typeof ucq.isAnonymous === 'boolean') {",
+									"    pm.collectionVariables.set('cartIsAnonymous', String(ucq.isAnonymous));",
+									"  }",
+									"}",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation UpdateCartQuantity {\r\n    updateCartQuantity(\r\n        command: {           \r\n            storeId: \"{{storeId}}\"\r\n            userId: \"{{userId}}\"\r\n            currencyCode: \"{{currencyCode}}\"\r\n            cultureName: \"{{cultureName}}\"\r\n            items: [\r\n            {\r\n                productId: \"{{productId_1}}\",\r\n                quantity: 1\r\n            },\r\n            {\r\n                productId: \"{{productId_2}}\",\r\n                quantity: 1\r\n            }\r\n    ]\r\n        }\r\n    ) {\r\n        id\r\n        isAnonymous\r\n        customerName\r\n        organizationId\r\n        organizationName\r\n        purchaseOrderNumber\r\n        checkoutId\r\n        itemsCount\r\n        itemsQuantity\r\n    }\r\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetFullCart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Validate cart response and sync cartId\", function () {",
+									"    const json = pm.response.json();",
+									"",
+									"    // Basic existence checks",
+									"    pm.expect(json).to.be.an(\"object\");",
+									"    pm.expect(json.data, \"data should exist\").to.exist;",
+									"    pm.expect(json.data.cart, \"data.cart should exist\").to.exist;",
+									"",
+									"    // cart.id type check",
+									"    pm.expect(json.data.cart.id, \"cart.id should be a string\").to.be.a(\"string\");",
+									"",
+									"    // Sync/validate collection variable cartId",
+									"    const existingCartId = pm.collectionVariables.get(\"cartId\");",
+									"    if (existingCartId && String(existingCartId).trim().length > 0) {",
+									"        pm.expect(json.data.cart.id, \"cart.id should match existing collection variable cartId\").to.eql(existingCartId);",
+									"    } else {",
+									"        pm.collectionVariables.set(\"cartId\", json.data.cart.id);",
+									"    }",
+									"",
+									"    // Sync/validate collection variable organizationId",
+									"    const existingOrgId = pm.collectionVariables.get(\"organizationId\");",
+									"    if (existingOrgId && String(existingOrgId).trim().length > 0) {",
+									"        pm.expect(json.data.cart.organizationId, \"cart.organizationId should match existing collection variable organizationId\").to.eql(existingOrgId);",
+									"    } else {",
+									"        pm.collectionVariables.set(\"organizationId\", json.data.cart.organizationId);",
+									"    }",
+									"",
+									"    // itemsCount vs items.length",
+									"    const items = Array.isArray(json.data.cart.items) ? json.data.cart.items : [];",
+									"    pm.expect(json.data.cart.itemsCount, \"itemsCount should equal items.length\").to.eql(items.length);",
+									"",
+									"    // total.amount is a non-negative number",
+									"    pm.expect(json.data.cart.total, \"total should exist\").to.exist;",
+									"    pm.expect(json.data.cart.total.amount, \"total.amount should be a number\").to.be.a(\"number\");",
+									"    pm.expect(json.data.cart.total.amount, \"total.amount should be >= 0\").to.be.at.least(0);",
+									"",
+									"    // Concise summary log",
+									"    console.log(`Cart summary -> id: ${json.data.cart.id}, organizationId: ${json.data.cart.organizationId}, itemsCount: ${json.data.cart.itemsCount}, total: ${json.data.cart.total.amount}`);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query Cart {\r\n    cart(\r\n        storeId: \"{{storeId}}\"\r\n        currencyCode: \"{{currencyCode}}\"  \r\n        userId: \"{{userId}}\"\r\n        cultureName: \"{{cultureName}}\"\r\n    ) {\r\n        id\r\n        hasPhysicalProducts\r\n        isAnonymous\r\n        customerId\r\n        customerName\r\n        organizationId\r\n        organizationName\r\n        comment\r\n        purchaseOrderNumber\r\n        checkoutId\r\n        itemsCount\r\n        itemsQuantity\r\n        total {\r\n            amount\r\n            formattedAmount\r\n            currency {\r\n                code\r\n                symbol\r\n                customFormatting\r\n                cultureName\r\n            }\r\n        }\r\n        subTotal {\r\n            amount\r\n            decimalDigits\r\n            formattedAmount\r\n            currency {\r\n                symbol\r\n                code\r\n            }\r\n        }\r\n        extendedPriceTotal {\r\n            amount\r\n            formattedAmount\r\n            currency {\r\n                code\r\n                symbol\r\n                cultureName\r\n            }\r\n        }\r\n        shippingPrice {\r\n            amount\r\n            decimalDigits\r\n            formattedAmount\r\n            formattedAmountWithoutCurrency\r\n            formattedAmountWithoutPoint\r\n            formattedAmountWithoutPointAndCurrency\r\n            currency {\r\n                code\r\n                symbol\r\n            }\r\n        }\r\n        validationErrors(ruleSet: \"items\") {\r\n            errorCode\r\n            errorMessage\r\n        }\r\n        coupons {\r\n            code\r\n            isAppliedSuccessfully\r\n        }\r\n        warnings {\r\n            errorCode\r\n            errorMessage\r\n            errorParameters {\r\n                key\r\n                value\r\n            }\r\n        }\r\n        items {\r\n            product {\r\n                id\r\n                code\r\n                catalogId\r\n                productType\r\n                minQuantity\r\n                maxQuantity\r\n                packSize\r\n                relevanceScore\r\n                isConfigurable\r\n                slug\r\n                name\r\n                imgSrc\r\n                hasVariations\r\n                inWishlist\r\n                wishlistIds\r\n                isPurchased\r\n                availabilityData {\r\n                    availableQuantity\r\n                    isBuyable\r\n                    isAvailable\r\n                    isInStock\r\n                    isActive\r\n                    isTrackInventory\r\n                    isEstimated\r\n                    inventories {\r\n                        inStockQuantity\r\n                        fulfillmentCenterId\r\n                        fulfillmentCenterName\r\n                    }\r\n                }\r\n                prices {\r\n                    discountPercent\r\n                    currency\r\n                    startDate\r\n                    endDate\r\n                    pricelistId\r\n                    pricelistName\r\n                    minQuantity\r\n                    list {\r\n                        amount                 \r\n                        formattedAmount\r\n        \r\n                    }\r\n                    sale {\r\n                        amount        \r\n                        formattedAmount      \r\n                    }\r\n                    actual {\r\n                        amount      \r\n                        formattedAmount             \r\n                    }\r\n                }\r\n                properties {\r\n                    name\r\n                    value\r\n                    hidden\r\n                    colorCode\r\n                    valueId\r\n                }\r\n            }\r\n        }\r\n        discounts {\r\n            coupon\r\n            description\r\n            promotionId\r\n            amount\r\n            amountWithTax\r\n        }\r\n        taxTotal {\r\n            amount\r\n            formattedAmount \r\n            currency {\r\n                code\r\n                symbol\r\n            }\r\n        }\r\n        shipments {\r\n            id\r\n            shipmentMethodCode\r\n            shipmentMethodOption\r\n            fulfillmentCenterId\r\n            taxPercentRate\r\n            taxType\r\n            deliveryAddress {\r\n                id\r\n                key\r\n                city\r\n                countryCode\r\n                countryName\r\n                email\r\n                firstName\r\n                middleName\r\n                lastName\r\n                line1\r\n                line2\r\n                name\r\n                organization\r\n                phone\r\n                postalCode\r\n                regionId\r\n                regionName\r\n                zip\r\n                outerId\r\n                description\r\n                addressType\r\n            }\r\n            price {\r\n                amount    \r\n                formattedAmount   \r\n            }\r\n            discountAmount {\r\n                amount\r\n                formattedAmount\r\n                currency {\r\n                    code\r\n                }\r\n            }\r\n            total {\r\n                amount\r\n                formattedAmount\r\n                currency {\r\n                    code\r\n                    symbol\r\n                }\r\n            }\r\n        }\r\n        availableShippingMethods {\r\n            id\r\n            code\r\n            logoUrl\r\n            name\r\n            description\r\n            optionName\r\n            optionDescription\r\n            priority\r\n        }\r\n        payments {\r\n            id     \r\n            paymentGatewayCode   \r\n            comment\r\n        }\r\n        availablePaymentMethods {\r\n            code     \r\n            name   \r\n            paymentMethodType\r\n            paymentMethodGroupType\r\n        }\r\n    }\r\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AddOrUpdateCartShipment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// AddOrUpdateCartShipment - Comprehensive Tests and Variable Extraction",
+									"",
+									"// 1) Basic HTTP status validation",
+									"pm.test(\"HTTP status is 200 (OK)\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// 2) Response should be JSON and parsable",
+									"let json;",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"  try {",
+									"    json = pm.response.json();",
+									"    pm.expect(json).to.be.an(\"object\");",
+									"  } catch (e) {",
+									"    pm.expect.fail(\"Response body is not valid JSON. Error: \" + e.message + \"\\nBody: \" + pm.response.text());",
+									"  }",
+									"});",
+									"",
+									"// Guard: if json could not be parsed, abort further tests with clear reason",
+									"if (!json || typeof json !== \"object\") {",
+									"  pm.test(\"Abort subsequent tests due to invalid JSON\", function(){",
+									"    pm.expect.fail(\"Subsequent validations skipped because the response JSON could not be parsed.\");",
+									"  });",
+									"  return; // stop executing the rest of the tests",
+									"}",
+									"",
+									"// 3) Ensure GraphQL data.addOrUpdateCartShipment exists",
+									"pm.test(\"GraphQL path data.addOrUpdateCartShipment is present\", function () {",
+									"  pm.expect(json, \"Top-level 'data' object is missing\").to.have.property(\"data\").that.is.an(\"object\");",
+									"  pm.expect(json.data, \"'data.addOrUpdateCartShipment' is missing\").to.have.property(\"addOrUpdateCartShipment\").that.is.an(\"object\");",
+									"});",
+									"",
+									"const node = json && json.data && json.data.addOrUpdateCartShipment ? json.data.addOrUpdateCartShipment : null;",
+									"if (!node) {",
+									"  pm.test(\"Abort subsequent tests due to missing addOrUpdateCartShipment\", function(){",
+									"    const errors = json && json.errors ? JSON.stringify(json.errors, null, 2) : \"<no graphql errors field>\";",
+									"    pm.expect.fail(\"data.addOrUpdateCartShipment not found. GraphQL errors: \" + errors);",
+									"  });",
+									"  return; // stop executing the rest of the tests",
+									"}",
+									"",
+									"// 4) Required top-level fields",
+									"pm.test(\"Required fields exist on addOrUpdateCartShipment\", function () {",
+									"  pm.expect(node, \"Missing 'id'\").to.have.property(\"id\").that.is.a(\"string\").and.is.not.empty;",
+									"  pm.expect(node, \"Missing 'customerId'\").to.have.property(\"customerId\").that.is.a(\"string\").and.is.not.empty;",
+									"  pm.expect(node, \"Missing 'itemsCount'\").to.have.property(\"itemsCount\").that.is.a(\"number\");",
+									"});",
+									"",
+									"// 5) Shipments array validations",
+									"pm.test(\"Shipments array exists and has at least one item\", function () {",
+									"  pm.expect(node, \"Missing 'shipments' array\").to.have.property(\"shipments\").that.is.an(\"array\");",
+									"  pm.expect(node.shipments.length, \"Shipments array should contain at least one shipment\").to.be.greaterThan(0);",
+									"});",
+									"",
+									"// Validate each shipment shape; also capture first shipment details for later use",
+									"let firstShipmentId = null;",
+									"pm.test(\"Each shipment has required fields (id, shipmentMethodCode, price.amount, deliveryAddress.email)\", function () {",
+									"  node.shipments.forEach((s, idx) => {",
+									"    pm.expect(s, `Shipment[${idx}] is not an object`).to.be.an(\"object\");",
+									"    pm.expect(s, `Shipment[${idx}] missing id`).to.have.property(\"id\").that.is.a(\"string\").and.is.not.empty;",
+									"    pm.expect(s, `Shipment[${idx}] missing shipmentMethodCode`).to.have.property(\"shipmentMethodCode\").that.is.a(\"string\").and.is.not.empty;",
+									"    pm.expect(s, `Shipment[${idx}] missing price`).to.have.property(\"price\").that.is.an(\"object\");",
+									"    pm.expect(s.price, `Shipment[${idx}] missing price.amount`).to.have.property(\"amount\").that.is.a(\"number\");",
+									"    pm.expect(s, `Shipment[${idx}] missing deliveryAddress`).to.have.property(\"deliveryAddress\").that.is.an(\"object\");",
+									"    pm.expect(s.deliveryAddress, `Shipment[${idx}] missing deliveryAddress.email`).to.have.property(\"email\").that.is.a(\"string\").and.is.not.empty;",
+									"  });",
+									"",
+									"  if (node.shipments[0]) {",
+									"    firstShipmentId = node.shipments[0].id;",
+									"  }",
+									"});",
+									"",
+									"// 6) Totals validation",
+									"pm.test(\"Totals (total.amount, subTotal.amount, taxTotal.amount) are present and numeric\", function () {",
+									"  pm.expect(node, \"Missing 'total'\").to.have.property(\"total\").that.is.an(\"object\");",
+									"  pm.expect(node.total, \"Missing 'total.amount'\").to.have.property(\"amount\").that.is.a(\"number\");",
+									"",
+									"  pm.expect(node, \"Missing 'subTotal'\").to.have.property(\"subTotal\").that.is.an(\"object\");",
+									"  pm.expect(node.subTotal, \"Missing 'subTotal.amount'\").to.have.property(\"amount\").that.is.a(\"number\");",
+									"",
+									"  pm.expect(node, \"Missing 'taxTotal'\").to.have.property(\"taxTotal\").that.is.an(\"object\");",
+									"  pm.expect(node.taxTotal, \"Missing 'taxTotal.amount'\").to.have.property(\"amount\").that.is.a(\"number\");",
+									"});",
+									"",
+									"// 7) Currency code matches environment variable if present",
+									"pm.test(\"Currency code matches environment variable 'currencyCode' when present\", function () {",
+									"  const envCurrency = pm.environment.get(\"currencyCode\");",
+									"  const responseCurrency = node && node.total && node.total.currency ? node.total.currency.code : undefined;",
+									"  if (envCurrency) {",
+									"    pm.expect(responseCurrency, \"Response currency code should be present and match environment\").to.eql(envCurrency);",
+									"  } else {",
+									"    pm.expect(true, \"Environment variable 'currencyCode' is not set; skipping currency check\").to.be.true;",
+									"  }",
+									"});",
+									"",
+									"// 8) Shipment price equals the passed shipment.price (150 or variable-driven)",
+									"pm.test(\"Shipment price equals expected shipment price\", function () {",
+									"  const expectedPrice = Number(150); // Default based on request body; update if body changes or make variable-driven",
+									"  const amounts = (node.shipments || []).map(s => s && s.price ? s.price.amount : undefined).filter(v => typeof v === \"number\");",
+									"  pm.expect(amounts.length, \"No numeric price.amount found in shipments\").to.be.greaterThan(0);",
+									"  amounts.forEach((amt, idx) => {",
+									"    pm.expect(amt, `Shipment[${idx}] price.amount should equal ${expectedPrice}`).to.eql(expectedPrice);",
+									"  });",
+									"});",
+									"",
+									"// 9) Extract and persist variables for downstream requests",
+									"(function saveUsefulVariables(){",
+									"  try {",
+									"    if (node.id) {",
+									"      pm.collectionVariables.set(\"cartId\", node.id);",
+									"    }",
+									"    if (firstShipmentId) {",
+									"      pm.collectionVariables.set(\"shipmentId\", firstShipmentId);",
+									"    } else if (node.shipments && node.shipments[0] && node.shipments[0].id) {",
+									"      pm.collectionVariables.set(\"shipmentId\", node.shipments[0].id);",
+									"    }",
+									"    if (node.checkoutId) {",
+									"      pm.collectionVariables.set(\"checkoutId\", node.checkoutId);",
+									"    }",
+									"  } catch (e) {",
+									"    // Non-fatal: variable extraction failed",
+									"    pm.test(\"Variable extraction errors\", function(){",
+									"      pm.expect.fail(\"Failed to save variables to collectionVariables: \" + e.message);",
+									"    });",
+									"  }",
+									"})();",
+									"",
+									"// 10) Helpful diagnostics when GraphQL errors are present",
+									"pm.test(\"GraphQL 'errors' array should be absent or empty\", function () {",
+									"  if (Array.isArray(json.errors)) {",
+									"    pm.expect(json.errors.length, \"GraphQL errors present: \" + JSON.stringify(json.errors, null, 2)).to.eql(0);",
+									"  } else {",
+									"    pm.expect(true, \"No GraphQL errors field or it's empty\").to.be.true;",
+									"  }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation AddOrUpdateCartShipment {\n    addOrUpdateCartShipment(\n        command: {\n            cartId: \"{{cartId}}\"\n            storeId: \"{{storeId}}\"\n            userId: \"{{userId}}\"\n            currencyCode: \"{{currencyCode}}\"\n            cultureName: \"{{cultureName}}\"\n            shipment: {\n                id: \"{{$guid}}\"\n                shipmentMethodCode: \"FixedRate\"\n                shipmentMethodOption: \"Ground\"\n                price: 150\n                deliveryAddress: {\n                id: \"{{$guid}}\"    \n                name: \"{{$randomCountryCode}}, {{$randomCity}}, {{$randomStreetAddress}}\",\n                organization: \"\",\n                firstName: \"Bella\",\n                lastName: \"Haudin\",\n                line1: \"{{$randomStreetAddress}}\",\n                line2: \"\",\n                city: \"{{$randomCity}}\",\n                countryCode: \"{{$randomCountryCode}}\",\n                countryName: \"{{$randomCountry}}\",\n                regionId: \"\",               \n                postalCode: \"1234\",\n                phone: \"06234556779\",\n                email: \"{{userName}}\",\n                addressType: 3\n                }\n            }\n        }\n    ) {\n        id\n        isAnonymous\n        customerId\n        customerName\n        organizationId\n        organizationName\n        purchaseOrderNumber\n        checkoutId\n        itemsCount\n        itemsQuantity\n        shipments {\n            id\n            shipmentMethodCode\n            shipmentMethodOption\n            comment\n            price {\n                amount\n            }\n            deliveryAddress {\n                id\n                key\n                city\n                countryCode\n                email\n                firstName\n                middleName\n                lastName\n                line1\n                line2\n                name\n                organization\n                phone\n                postalCode\n                regionId\n                regionName\n                zip\n                outerId\n                description\n                addressType\n                countryName\n            }\n        }\n        total {\n            amount\n            formattedAmount\n            currency {\n                code\n                symbol\n            }\n        }\n        subTotal {\n            amount\n            formattedAmount\n        }\n        taxTotal {\n            amount\n            formattedAmount\n            currency {\n                code\n                symbol\n            }\n        }\n    }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AddOrUpdateCartPayment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Tests for AddOrUpdateCartPayment GraphQL mutation",
+									"// 1) Assert HTTP status is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code, \"Expected HTTP 200 but got \" + pm.response.code).to.eql(200);",
+									"});",
+									"",
+									"// Parse response safely",
+									"let respJson;",
+									"try {",
+									"    respJson = pm.response.json();",
+									"} catch (e) {",
+									"    pm.test(\"Response is valid JSON\", function () {",
+									"        pm.expect.fail(\"Response body is not valid JSON: \" + e.message);",
+									"    });",
+									"}",
+									"",
+									"// Guard if json missing",
+									"if (respJson) {",
+									"    const cartPath = [\"data\", \"addOrUpdateCartPayment\"];    ",
+									"    const get = (obj, pathArr) => pathArr.reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), obj);",
+									"    const cart = get(respJson, cartPath);",
+									"",
+									"    // 2) Assert JSON has data.addOrUpdateCartPayment and id matches UUID format",
+									"    pm.test(\"Response has data.addOrUpdateCartPayment\", function () {",
+									"        pm.expect(cart, \"'data.addOrUpdateCartPayment' is missing in response\").to.be.an(\"object\");",
+									"    });",
+									"",
+									"    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;",
+									"    pm.test(\"Cart id is a valid UUID\", function () {",
+									"        pm.expect(cart && cart.id, \"Cart id not found at data.addOrUpdateCartPayment.id\").to.be.a(\"string\");",
+									"        pm.expect(uuidRegex.test(cart.id), \"Cart id does not match UUID format: \" + cart?.id).to.be.true;",
+									"    });",
+									"",
+									"    // 3) Assert payments array exists and contains entry with paymentGatewayCode from request",
+									"    // Read gateway code from the GraphQL body we sent",
+									"    let sentGatewayCode = \"DefaultManualPaymentMethod\";",
+									"    try {",
+									"        const gqlBody = pm.request.body?.graphql?.query || pm.request.body?.raw;",
+									"        if (gqlBody && typeof gqlBody === \"string\") {",
+									"            const m = gqlBody.match(/paymentGatewayCode\\s*:\\s*\\\"([^\\\"]+)\\\"/);",
+									"            if (m && m[1]) sentGatewayCode = m[1];",
+									"        }",
+									"    } catch (e) {",
+									"        // fallback already set",
+									"    }",
+									"",
+									"    pm.test(\"Payments array exists\", function () {",
+									"        pm.expect(cart && Array.isArray(cart.payments), \"'payments' is missing or not an array\").to.be.true;",
+									"    });",
+									"",
+									"    pm.test(\"Payments contain an entry with expected paymentGatewayCode\", function () {",
+									"        const found = Array.isArray(cart?.payments) && cart.payments.some(p => p && p.paymentGatewayCode === sentGatewayCode);",
+									"        pm.expect(found, \"No payment with paymentGatewayCode '\" + sentGatewayCode + \"' found in payments\").to.be.true;",
+									"    });",
+									"",
+									"    // 4) Save response fields into collectionVariables variables",
+									"    if (cart && typeof cart.id === 'string') {",
+									"        pm.collectionVariables.set(\"cartId\", cart.id);",
+									"    }",
+									"    if (cart && typeof cart.checkoutId === 'string') {",
+									"        pm.collectionVariables.set(\"checkoutId\", cart.checkoutId);",
+									"    }",
+									"    const firstPaymentId = Array.isArray(cart?.payments) && cart.payments[0] ? cart.payments[0].id : undefined;",
+									"    if (typeof firstPaymentId === 'string') {",
+									"        pm.collectionVariables.set(\"paymentId\", firstPaymentId);",
+									"    }",
+									"",
+									"    pm.test(\"Saved env vars: cartId, checkoutId, paymentId\", function () {",
+									"        pm.expect(pm.collectionVariables.get(\"cartId\"), \"cartId not saved to collectionVariables\").to.be.a(\"string\");",
+									"        pm.expect(pm.collectionVariables.get(\"checkoutId\"), \"checkoutId not saved to collectionVariables\").to.be.a(\"string\");",
+									"        pm.expect(pm.collectionVariables.get(\"paymentId\"), \"paymentId not saved to collectionVariables\").to.be.a(\"string\");",
+									"    });",
+									"",
+									"    // 6) Visualizer for key cart fields and payments table",
+									"    try {",
+									"        var template = `",
+									"            <style>",
+									"                table { border-collapse: collapse; width: 100%; }",
+									"                th, td { border: 1px solid #ddd; padding: 8px; }",
+									"                th { background: #f5f5f5; text-align: left; }",
+									"                h3 { margin: 8px 0; }",
+									"            </style>",
+									"            <h3>Cart Summary</h3>",
+									"            <div>",
+									"                <b>id:</b> {{cart.id}}<br/>",
+									"                <b>storeId:</b> {{cart.storeId}}<br/>",
+									"                <b>customerName:</b> {{cart.customerName}}<br/>",
+									"                <b>itemsCount:</b> {{cart.itemsCount}}",
+									"            </div>",
+									"            <h3>Payments</h3>",
+									"            <table>",
+									"                <thead>",
+									"                    <tr>",
+									"                        <th>id</th>",
+									"                        <th>paymentGatewayCode</th>",
+									"                    </tr>",
+									"                </thead>",
+									"                <tbody>",
+									"                    {{#each payments}}",
+									"                      <tr>",
+									"                        <td>{{this.id}}</td>",
+									"                        <td>{{this.paymentGatewayCode}}</td>",
+									"                      </tr>",
+									"                    {{/each}}",
+									"                </tbody>",
+									"            </table>",
+									"        `;",
+									"",
+									"        function constructVisualizerPayload() {",
+									"            return {",
+									"                cart: cart || {},",
+									"                payments: Array.isArray(cart?.payments) ? cart.payments : []",
+									"            };",
+									"        }",
+									"        pm.visualizer.set(template, constructVisualizerPayload());",
+									"    } catch (vizErr) {",
+									"        pm.test(\"Visualizer rendered\", function () {",
+									"            pm.expect.fail(\"Failed to render visualizer: \" + vizErr.message);",
+									"        });",
+									"    }",
+									"}",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation AddOrUpdateCartPayment {\r\n    addOrUpdateCartPayment(\r\n        command: {\r\n            cartId: \"{{cartId}}\"\r\n            storeId: \"{{storeId}}\"\r\n            userId: \"{{userId}}\"\r\n            currencyCode: \"{{currencyCode}}\"\r\n            cultureName: \"{{cultureName}}\"\r\n            payment: {\r\n                id: \"74a0a005-353e-4c14-a823-acd5f44b46a5\"\r\n                paymentGatewayCode: \"DefaultManualPaymentMethod\"\r\n            billingAddress: {\r\n                id: \"74a0a005-353e-4c14-a823-acd5f44b46a5\",\r\n                name: \"LTU, Budapest, Andrassy 223\",\r\n                organization: \"\",\r\n                firstName: \"Bella\",\r\n                lastName: \"Haudin\",\r\n                line1: \"Andrassy 223\",\r\n                line2: \"\",\r\n                city: \"Budapest\",\r\n                countryCode: \"LTU\",\r\n                countryName: \"Lithuania\",\r\n                regionId: \"\",\r\n                regionName: null,\r\n                postalCode: \"1027\",\r\n                phone: \"06234556779\",\r\n                email: \"bella.huadin@crisps.com\",\r\n                addressType: 1\r\n            }\r\n            }\r\n        }\r\n    ) {\r\n        id\r\n        name\r\n        status\r\n        storeId\r\n        isAnonymous\r\n        customerId\r\n        customerName\r\n        organizationId\r\n        organizationName\r\n        comment\r\n        purchaseOrderNumber\r\n        checkoutId\r\n        itemsCount\r\n        itemsQuantity\r\n        payments {\r\n            id\r\n            paymentGatewayCode\r\n            taxPercentRate\r\n            taxType\r\n            comment\r\n            billingAddress {\r\n                id\r\n                key\r\n                city\r\n                countryCode\r\n                countryName\r\n                email\r\n                firstName\r\n                middleName\r\n                lastName\r\n                line1\r\n                line2\r\n                name\r\n                organization\r\n                phone\r\n                postalCode\r\n                regionId\r\n                regionName\r\n                zip\r\n                description\r\n                addressType\r\n            }\r\n        }\r\n    }\r\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateOrderFromCart",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Post-response tests for CreateOrderFromCart (UID: 15325423-e0620a76-12b5-4357-bcd1-255c560c1292)",
+									"// Safely parse response, define commonly used vars, and assert logical outcomes",
+									"// Uses variables: baseUrl, cartId, userToken (from environment/collection/globals)",
+									"",
+									"(function () {",
+									"  // Helpers",
+									"  function safeJson() {",
+									"    try { return pm.response.json(); } catch (e) { return null; }",
+									"  }",
+									"",
+									"  function hasHeader(name) {",
+									"    return pm.response.headers.has(name);",
+									"  }",
+									"",
+									"  // Core parsing and shared variables",
+									"  const body = safeJson();",
+									"  const isJson = body !== null;",
+									"  const data = isJson && body.data ? body.data : null;",
+									"  const errors = isJson && Array.isArray(body.errors) ? body.errors : [];",
+									"  const hasGraphQLErrors = errors.length > 0;",
+									"  const order = data && data.createOrderFromCart ? data.createOrderFromCart : null;",
+									"",
+									"  // Basic response checks",
+									"  pm.test(\"Response status is 2xx or 4xx for GraphQL\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 403, 404, 422]);",
+									"  });",
+									"",
+									"  pm.test(\"Content-Type header present\", function () {",
+									"    pm.expect(hasHeader(\"Content-Type\")).to.be.true;",
+									"  });",
+									"",
+									"  pm.test(\"Response is JSON when 200\", function () {",
+									"    if (pm.response.code === 200) {",
+									"      pm.expect(isJson, \"Expected JSON when status is 200\").to.be.true;",
+									"    } else {",
+									"      pm.expect(true).to.be.true; // not applicable",
+									"    }",
+									"  });",
+									"",
+									"  // GraphQL structure tests",
+									"  pm.test(\"GraphQL response contains either data or errors\", function () {",
+									"    if (isJson) {",
+									"      pm.expect(Boolean(data) || hasGraphQLErrors).to.be.true;",
+									"    } else {",
+									"      pm.expect(true).to.be.true; // Not applicable when non-JSON",
+									"    }",
+									"  });",
+									"",
+									"  // cartId validation scenario",
+									"  pm.test(\"Missing cartId results in 400 or GraphQL validation error\", function () {",
+									"    const cartId = pm.variables.get(\"cartId\");",
+									"    const status = pm.response.code;",
+									"",
+									"    const hasCartIdRelatedError = hasGraphQLErrors && errors.some(function (e) {",
+									"      const msg = (e && e.message) ? String(e.message) : \"\";",
+									"      const ext = e && e.extensions ? e.extensions : null;",
+									"      const path = e && e.path ? e.path.join(\".\") : \"\";",
+									"      return /cartid|cart id|cart/i.test(msg) || (path && /cart/i.test(path)) || (ext && /cart/i.test(JSON.stringify(ext)));",
+									"    });",
+									"",
+									"    if (!cartId) {",
+									"      pm.expect(status).to.be.oneOf([400, 200]);",
+									"      pm.expect(hasCartIdRelatedError || status === 400).to.be.true;",
+									"    } else {",
+									"      pm.expect(true).to.be.true;",
+									"    }",
+									"  });",
+									"",
+									"  // Existing domain tests (kept intact)",
+									"  pm.test(\"createOrderFromCart returns an object\", function () {",
+									"    if (hasGraphQLErrors || !data) {",
+									"      pm.expect(true).to.be.true; // skip when errors present",
+									"      return;",
+									"    }",
+									"    pm.expect(order, \"Expected order object\").to.be.an(\"object\");",
+									"  });",
+									"",
+									"  pm.test(\"Order has required scalar fields\", function () {",
+									"    if (!order) { pm.expect(true).to.be.true; return; }",
+									"    pm.expect(order).to.have.property(\"id\");",
+									"    pm.expect(order).to.have.property(\"number\");",
+									"    pm.expect(order).to.have.property(\"status\");",
+									"    pm.expect(order).to.have.property(\"isApproved\");",
+									"  });",
+									"",
+									"  pm.test(\"Monetary fields have expected shape\", function () {",
+									"    if (!order) { pm.expect(true).to.be.true; return; }",
+									"    function expectMoney(m) {",
+									"      pm.expect(m).to.be.an(\"object\");",
+									"      pm.expect(m).to.have.property(\"amount\");",
+									"      pm.expect(m).to.have.property(\"formattedAmount\");",
+									"      pm.expect(m).to.have.property(\"currency\");",
+									"      pm.expect(m.currency).to.have.property(\"code\");",
+									"      pm.expect(m.currency).to.have.property(\"symbol\");",
+									"    }",
+									"    [order.total, order.taxTotal, order.discountAmount, order.subTotal, order.shippingTotal]",
+									"      .forEach(function (m) { if (m) expectMoney(m); });",
+									"  });",
+									"",
+									"  pm.test(\"Items array shape is valid\", function () {",
+									"    if (!order || !Array.isArray(order.items)) { pm.expect(true).to.be.true; return; }",
+									"    order.items.forEach(function (it) {",
+									"      pm.expect(it).to.have.property(\"id\");",
+									"      pm.expect(it).to.have.property(\"name\");",
+									"      pm.expect(it).to.have.property(\"sku\");",
+									"      pm.expect(it).to.have.property(\"price\");",
+									"      pm.expect(it).to.have.property(\"quantity\");",
+									"    });",
+									"  });",
+									"",
+									"  // New: Extract order id/number, assert presence on success, and set collection variables",
+									"  pm.test(\"Order id and number exist when mutation succeeds\", function () {",
+									"    if (hasGraphQLErrors || !order) {",
+									"      pm.expect(true).to.be.true; // skip on GraphQL errors or missing order",
+									"      return;",
+									"    }",
+									"    pm.expect(order && order.id, \"order.id should be present\").to.be.ok;",
+									"    pm.expect(order && order.number, \"order.number should be present\").to.be.ok;",
+									"  });",
+									"",
+									"  pm.test(\"Set collection variables orderId and orderNumber on success\", function () {",
+									"    if (hasGraphQLErrors || !order || !order.id || !order.number) {",
+									"      pm.expect(true).to.be.true; // skip when not applicable",
+									"      return;",
+									"    }",
+									"    pm.collectionVariables.set('orderId', String(order.id));",
+									"    pm.collectionVariables.set('orderNumber', String(order.number));",
+									"    console.info('[CreateOrderFromCart] Saved orderId and orderNumber to collection variables', { orderId: order.id, orderNumber: order.number });",
+									"    pm.expect(pm.collectionVariables.get('orderId')).to.eql(String(order.id));",
+									"    pm.expect(pm.collectionVariables.get('orderNumber')).to.eql(String(order.number));",
+									"  });",
+									"",
+									"  pm.test(\"Log helpful message when data is missing due to GraphQL errors\", function () {",
+									"    if (hasGraphQLErrors) {",
+									"      console.info('[CreateOrderFromCart] GraphQL errors present; not setting order variables.', { errors: errors });",
+									"      pm.expect(true).to.be.true;",
+									"    } else if (!order) {",
+									"      console.info('[CreateOrderFromCart] No order in data.createOrderFromCart; nothing to save.');",
+									"      pm.expect(true).to.be.true;",
+									"    } else {",
+									"      pm.expect(true).to.be.true; // nothing to log when success",
+									"    }",
+									"  });",
+									"",
+									"})();"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation CreateOrderFromCart {\r\n    createOrderFromCart(command: { cartId: \"{{cartId}}\" }) {\r\n        id\r\n        operationType\r\n        number\r\n        isApproved\r\n        status\r\n        statusDisplayValue\r\n        comment\r\n        isCancelled\r\n        cancelledDate\r\n        cancelReason\r\n        customerName\r\n        storeId\r\n        storeName\r\n        organizationId\r\n        organizationName\r\n        employeeId\r\n        employeeName\r\n        purchaseOrderNumber\r\n        languageCode\r\n        customerId\r\n        total {\r\n            amount\r\n            decimalDigits\r\n            formattedAmount\r\n            currency {\r\n                code\r\n                symbol\r\n            }\r\n        }\r\n        taxTotal {\r\n            amount\r\n            formattedAmount\r\n            currency {\r\n                symbol\r\n                code\r\n            }\r\n        }\r\n        discountAmount {\r\n            amount\r\n            formattedAmount\r\n            currency {\r\n                code\r\n                symbol\r\n            }\r\n        }\r\n        subTotal {\r\n            amount\r\n            formattedAmount\r\n            currency {\r\n                code\r\n                symbol\r\n            }\r\n        }\r\n        shippingTotal {\r\n            amount\r\n            formattedAmount\r\n            currency {\r\n                code\r\n                symbol\r\n            }\r\n        }\r\n        items {\r\n            id\r\n            name\r\n            imageUrl\r\n            sku\r\n            price {\r\n                amount\r\n                formattedAmount\r\n                currency {\r\n                    code\r\n                    symbol\r\n                }\r\n            }\r\n            quantity\r\n        }\r\n    }\r\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetOrder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Post-response tests for GetOrder GraphQL request",
+									"// Validates shape and key business rules of the order payload",
+									"",
+									"// 1) HTTP status is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code, \"Expected HTTP 200 but got \" + pm.response.code).to.eql(200);",
+									"});",
+									"",
+									"// 2) Response is valid JSON",
+									"let json;",
+									"try {",
+									"    json = pm.response.json();",
+									"    pm.test(\"Response is valid JSON\", function () {",
+									"        pm.expect(json).to.be.an(\"object\");",
+									"    });",
+									"} catch (e) {",
+									"    pm.test(\"Response is valid JSON\", function () {",
+									"        pm.expect.fail(\"Response body is not valid JSON: \" + e.message);",
+									"    });",
+									"}",
+									"",
+									"if (!json) { return; }",
+									"",
+									"// Helper utils",
+									"const get = (obj, pathArr) => pathArr.reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), obj);",
+									"const isISO8601 = (s) => typeof s === 'string' && /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$/.test(s);",
+									"const isUUID = (s) => typeof s === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);",
+									"const toNumber = (v) => (typeof v === 'number' ? v : Number(v));",
+									"const floatEq = (a, b, eps = 1e-6) => Math.abs(a - b) <= eps;",
+									"",
+									"// 3) data.order exists",
+									"const order = get(json, [\"data\", \"order\"]);",
+									"pm.test(\"Response has data.order object\", function () {",
+									"    pm.expect(order, \"'data.order' is missing\").to.be.an(\"object\");",
+									"});",
+									"if (!order) { return; }",
+									"",
+									"// 4) order.id is UUID",
+									"pm.test(\"Order id is a valid UUID\", function () {",
+									"    pm.expect(order.id, \"order.id is missing\").to.be.a(\"string\");",
+									"    pm.expect(isUUID(order.id), \"order.id must be UUID, got: \" + order.id).to.be.true;",
+									"});",
+									"",
+									"// 5) order.number pattern check (COYYYYMMDD-#####) or non-empty string fallback",
+									"pm.test(\"Order number format is valid (COYYYYMMDD-#####) or non-empty string\", function () {",
+									"    pm.expect(order.number, \"order.number is missing\").to.be.a(\"string\");",
+									"    const pattern = /^CO\\d{6,8}-\\d{5}$/; // allows COYYMMDD or COYYYYMMDD depending on backend; adjust if needed",
+									"    const ok = pattern.test(order.number) || order.number.trim().length > 0;",
+									"    pm.expect(ok, \"order.number does not match expected pattern nor non-empty\").to.be.true;",
+									"});",
+									"",
+									"// 6) createdDate is ISO8601",
+									"pm.test(\"createdDate is ISO8601 UTC string\", function () {",
+									"    pm.expect(order.createdDate, \"createdDate is missing\").to.be.a(\"string\");",
+									"    pm.expect(isISO8601(order.createdDate), \"createdDate not ISO8601: \" + order.createdDate).to.be.true;",
+									"});",
+									"",
+									"// 7) status and statusDisplayValue are present (strings)",
+									"pm.test(\"status and statusDisplayValue are present\", function () {",
+									"    pm.expect(order.status, \"status is missing\").to.be.a(\"string\");",
+									"    pm.expect(order.statusDisplayValue, \"statusDisplayValue is missing\").to.be.a(\"string\");",
+									"});",
+									"",
+									"// 8) items array checks",
+									"pm.test(\"items is an array with at least one item\", function () {",
+									"    pm.expect(order.items, \"items missing\").to.be.an(\"array\");",
+									"    pm.expect(order.items.length, \"items should contain at least one item\").to.be.greaterThan(0);",
+									"});",
+									"",
+									"if (Array.isArray(order.items)) {",
+									"    order.items.forEach((it, idx) => {",
+									"        pm.test(`Item[${idx}] has id, name, quantity > 0`, function () {",
+									"            pm.expect(it.id, `items[${idx}].id missing`).to.be.a(\"string\");",
+									"            pm.expect(it.name, `items[${idx}].name missing`).to.be.a(\"string\");",
+									"            pm.expect(it.quantity, `items[${idx}].quantity missing`).to.be.a(\"number\");",
+									"            pm.expect(it.quantity, `items[${idx}].quantity should be > 0`).to.be.greaterThan(0);",
+									"        });",
+									"        pm.test(`Item[${idx}] price and placedPrice amounts are numbers`, function () {",
+									"            const priceAmt = get(it, [\"price\", \"amount\"]);",
+									"            const placedAmt = get(it, [\"placedPrice\", \"amount\"]);",
+									"            pm.expect(typeof priceAmt, `items[${idx}].price.amount missing`).to.eql(\"number\");",
+									"            pm.expect(typeof placedAmt, `items[${idx}].placedPrice.amount missing`).to.eql(\"number\");",
+									"        });",
+									"    });",
+									"}",
+									"",
+									"// 9) Totals present and numeric",
+									"const subTotalAmt = toNumber(get(order, [\"subTotal\", \"amount\"]));",
+									"const shippingTotalAmt = toNumber(get(order, [\"shippingTotal\", \"amount\"]));",
+									"const taxTotalAmt = toNumber(get(order, [\"taxTotal\", \"amount\"]));",
+									"const discountTotalAmt = toNumber(get(order, [\"discountTotal\", \"amount\"]));",
+									"const totalAmt = toNumber(get(order, [\"total\", \"amount\"]));",
+									"",
+									"pm.test(\"Totals objects present with numeric amounts\", function () {",
+									"    pm.expect(Number.isFinite(subTotalAmt), \"subTotal.amount not numeric\").to.be.true;",
+									"    pm.expect(Number.isFinite(shippingTotalAmt), \"shippingTotal.amount not numeric\").to.be.true;",
+									"    pm.expect(Number.isFinite(taxTotalAmt), \"taxTotal.amount not numeric\").to.be.true;",
+									"    pm.expect(Number.isFinite(discountTotalAmt), \"discountTotal.amount not numeric\").to.be.true;",
+									"    pm.expect(Number.isFinite(totalAmt), \"total.amount not numeric\").to.be.true;",
+									"});",
+									"",
+									"pm.test(\"total = subTotal + shippingTotal + taxTotal - discountTotal (tolerance 1e-6)\", function () {",
+									"    const expected = subTotalAmt + shippingTotalAmt + taxTotalAmt - discountTotalAmt;",
+									"    pm.expect(floatEq(totalAmt, expected), `Totals mismatch. total=${totalAmt}, expected=${expected}`).to.be.true;",
+									"});",
+									"",
+									"// 10) inPayments array and gatewayCode check when present",
+									"pm.test(\"inPayments is an array (can be empty)\", function () {",
+									"    pm.expect(order.inPayments, \"inPayments missing\").to.be.an(\"array\");",
+									"});",
+									"",
+									"if (Array.isArray(order.inPayments) && order.inPayments.length > 0) {",
+									"    const expectedGateway = \"DefaultManualPaymentMethod\"; // change if your test setup differs",
+									"    order.inPayments.forEach((p, idx) => {",
+									"        pm.test(`Payment[${idx}] has gatewayCode`, function () {",
+									"            pm.expect(p.gatewayCode, `inPayments[${idx}].gatewayCode missing`).to.be.a(\"string\");",
+									"        });",
+									"        if (p.gatewayCode) {",
+									"            pm.test(`Payment[${idx}] gatewayCode matches expected when applicable`, function () {",
+									"                pm.expect([expectedGateway, null].includes(p.gatewayCode) || p.gatewayCode.length > 0, `Unexpected gatewayCode: ${p.gatewayCode}`).to.be.true;",
+									"            });",
+									"        }",
+									"    });",
+									"}",
+									"",
+									"// 11) Extract orderId into collection variable if not already set",
+									"if (order && order.id) {",
+									"    const existing = pm.collectionVariables.get(\"orderId\");",
+									"    if (!existing) {",
+									"        pm.collectionVariables.set(\"orderId\", order.id);",
+									"        pm.test(\"Saved orderId to collection variables\", function () {",
+									"            pm.expect(pm.collectionVariables.get(\"orderId\"), \"orderId not saved\").to.eql(order.id);",
+									"        });",
+									"    } else {",
+									"        pm.test(\"orderId already set in collection variables\", function () {",
+									"            pm.expect(existing).to.be.a(\"string\");",
+									"        });",
+									"    }",
+									"}",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query GetFullOrder($id: String, $number: String, $cultureName: String) {\n  order(id: $id, number: $number, cultureName: $cultureName) {\n    ...fullOrderFields\n    __typename\n  }\n}\n\nfragment currency on CurrencyType {\n  code\n  symbol\n  __typename\n}\n\nfragment money on MoneyType {\n  amount\n  formattedAmount\n  formattedAmountWithoutCurrency\n  currency {\n    ...currency\n    __typename\n  }\n  __typename\n}\n\nfragment property on Property {\n  group {\n    id\n    name\n    displayOrder\n    description\n    __typename\n  }\n  name\n  colorCode\n  value\n  valueDisplayOrder\n  propertyType\n  hidden\n  propertyValueType\n  label\n  displayOrder\n  __typename\n}\n\nfragment orderLineItemFields on OrderLineItemType {\n  id\n  imageUrl\n  isGift\n  name\n  productId\n  productType\n  showPlacedPrice\n  listTotal {\n    ...money\n    __typename\n  }\n  product {\n    id\n    brandName\n    slug\n    masterVariation {\n      id\n      slug\n      __typename\n    }\n    properties {\n      ...property\n      __typename\n    }\n    __typename\n  }\n  quantity\n  sku\n  extendedPrice {\n    ...money\n    __typename\n  }\n  price {\n    ...money\n    __typename\n  }\n  placedPrice {\n    ...money\n    __typename\n  }\n  taxTotal {\n    ...money\n    __typename\n  }\n  discountTotal {\n    ...money\n    __typename\n  }\n  discounts {\n    promotionId\n    promotionName\n    __typename\n  }\n  outerId\n  vendor {\n    id\n    name\n    rating {\n      value\n      reviewCount\n      __typename\n    }\n    __typename\n  }\n  configurationItems {\n    id\n    name\n    customText\n    type\n    files {\n      name\n      url\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment shortOrderFields on CustomerOrderType {\n  id\n  number\n  createdDate\n  status\n  statusDisplayValue\n  items {\n    ...orderLineItemFields\n    __typename\n  }\n  discounts {\n    amount {\n      amount\n      formattedAmount\n      currency {\n        code\n        __typename\n      }\n      __typename\n    }\n    coupon\n    description\n    promotionId\n    promotionName\n    __typename\n  }\n  discountTotal {\n    ...money\n    __typename\n  }\n  shippingSubTotal {\n    ...money\n    __typename\n  }\n  shippingTotal {\n    ...money\n    __typename\n  }\n  taxTotal {\n    ...money\n    __typename\n  }\n  subTotal {\n    ...money\n    __typename\n  }\n  total {\n    ...money\n    __typename\n  }\n  __typename\n}\n\nfragment orderAddressFields on OrderAddressType {\n  id\n  name\n  organization\n  firstName\n  lastName\n  line1\n  line2\n  city\n  countryCode\n  countryName\n  regionId\n  regionName\n  postalCode\n  phone\n  email\n  addressType\n  __typename\n}\n\nfragment fullOrderFields on CustomerOrderType {\n  ...shortOrderFields\n  comment\n  purchaseOrderNumber\n  cancelReason\n  currency {\n    ...currency\n    __typename\n  }\n  shipments {\n    shipmentMethodCode\n    shipmentMethodOption\n    shippingMethod {\n      logoUrl\n      typeName\n      __typename\n    }\n    price {\n      ...money\n      __typename\n    }\n    discountAmount {\n      ...money\n      __typename\n    }\n    deliveryAddress {\n      ...orderAddressFields\n      __typename\n    }\n    pickupLocation {\n      id\n      name\n      description\n      geoLocation\n      deliveryDays\n      storageDays\n      contactEmail\n      contactPhone\n      workingHours\n      isActive\n      address {\n        id\n        key\n        name\n        organization\n        countryCode\n        countryName\n        city\n        postalCode\n        line1\n        line2\n        regionId\n        regionName\n        phone\n        email\n        outerId\n        description\n        addressType\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  inPayments(first: 1, sort: \"CreatedDate:desc\") {\n    id\n    number\n    isApproved\n    gatewayCode\n    paymentMethod {\n      name\n      logoUrl\n      code\n      typeName\n      paymentMethodType\n      paymentMethodGroupType\n      __typename\n    }\n    billingAddress {\n      ...orderAddressFields\n      __typename\n    }\n    __typename\n  }\n  availablePaymentMethods {\n    name\n    code\n    logoUrl\n    price {\n      ...money\n      __typename\n    }\n    __typename\n  }\n  __typename\n}",
+								"variables": "{\n  \"id\": \"{{orderId}}\",\n  \"cultureName\": \"{{cultureName}}\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PendingForApprovals",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1) Status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// 2) Content-Type header contains application/json OR GraphQL JSON media type",
+									"pm.test(\"Content-Type is JSON (application/json or application/graphql-response+json)\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\");",
+									"    const ct = (pm.response.headers.get(\"Content-Type\") || \"\").toLowerCase();",
+									"    pm.expect(ct).to.satisfy(function (val) {",
+									"        return val.includes(\"application/json\") || val.includes(\"application/graphql-response+json\");",
+									"    }, \"Content-Type should be application/json or application/graphql-response+json\");",
+									"});",
+									"",
+									"// 3) Response is valid JSON object",
+									"let json;",
+									"pm.test(\"Response has valid JSON object\", function () {",
+									"    try {",
+									"        json = pm.response.json();",
+									"        pm.expect(json, \"Root should be an object\").to.be.an(\"object\");",
+									"    } catch (e) {",
+									"        pm.expect.fail(\"Response body is not valid JSON: \" + e.message);",
+									"    }",
+									"});",
+									"",
+									"// 4) GraphQL: no top-level errors or errors is an empty array",
+									"pm.test(\"Response has no GraphQL errors\", function () {",
+									"    const hasErrorsProp = json && Object.prototype.hasOwnProperty.call(json, \"errors\");",
+									"    if (hasErrorsProp) {",
+									"        const errs = json.errors;",
+									"        pm.expect(errs, \"errors should be an array when present\").to.be.an(\"array\");",
+									"        pm.expect(errs.length, \"errors array should be empty\").to.equal(0);",
+									"    } else {",
+									"        pm.expect(hasErrorsProp, \"errors property not present, which is acceptable\").to.be.false;",
+									"    }",
+									"});",
+									"",
+									"// 5) data.pendingForApprovals exists as object",
+									"pm.test(\"data.pendingForApprovals exists\", function () {",
+									"    pm.expect(json, \"json root object\").to.have.property(\"data\").that.is.an(\"object\");",
+									"    pm.expect(json.data, \"data object\").to.have.property(\"pendingForApprovals\").that.is.an(\"object\");",
+									"});",
+									"",
+									"// 6) totalCount number, items array, and equality with items.length",
+									"let pfa;",
+									"pm.test(\"totalCount is number and equals items.length\", function () {",
+									"    pfa = json && json.data && json.data.pendingForApprovals;",
+									"    pm.expect(pfa, \"pendingForApprovals object\").to.be.an(\"object\");",
+									"    pm.expect(pfa, \"pendingForApprovals has totalCount\").to.have.property(\"totalCount\");",
+									"    pm.expect(pfa.totalCount, \"totalCount is a number\").to.be.a(\"number\");",
+									"    pm.expect(pfa, \"pendingForApprovals has items\").to.have.property(\"items\").that.is.an(\"array\");",
+									"    pm.expect(pfa.totalCount, \"totalCount equals items.length\").to.equal(pfa.items.length);",
+									"});",
+									"",
+									"// 7) Each item schema validations with guard for empty items",
+									"pm.test(\"Each item has required fields and valid types (guarded)\", function () {",
+									"    const items = (pfa && Array.isArray(pfa.items)) ? pfa.items : [];",
+									"    if (items.length === 0) {",
+									"        // Guard: skip schema checks when no items",
+									"        console.info(\"No items returned; skipping item schema assertions.\");",
+									"        pm.expect(items.length, \"No items to validate\").to.equal(0);",
+									"        return;",
+									"    }",
+									"",
+									"    const allowedStatuses = [\"New\", \"Approved\", \"Rejected\"];",
+									"    items.forEach(function (it, idx) {",
+									"        pm.expect(it, \"item #\" + idx + \" should be an object\").to.be.an(\"object\");",
+									"",
+									"        pm.expect(it, \"item #\" + idx + \" has id\").to.have.property(\"id\");",
+									"        pm.expect(it.id, \"item #\" + idx + \" id is a non-empty string\").to.be.a(\"string\").and.to.have.length.greaterThan(0);",
+									"",
+									"        pm.expect(it, \"item #\" + idx + \" has isApproved\").to.have.property(\"isApproved\");",
+									"        pm.expect(it.isApproved, \"item #\" + idx + \" isApproved is boolean\").to.be.a(\"boolean\");",
+									"",
+									"        pm.expect(it, \"item #\" + idx + \" has status\").to.have.property(\"status\");",
+									"        pm.expect(it.status, \"item #\" + idx + \" status is a string\").to.be.a(\"string\");",
+									"        pm.expect([\"New\",\"Approved\",\"Rejected\"], \"item #\" + idx + \" status is allowed\").to.include(it.status);",
+									"",
+									"        pm.expect(it, \"item #\" + idx + \" has storeId\").to.have.property(\"storeId\");",
+									"        pm.expect(it.storeId, \"item #\" + idx + \" storeId is a non-empty string\").to.be.a(\"string\").and.to.have.length.greaterThan(0);",
+									"    });",
+									"});",
+									"",
+									"// 8) Set env var lastDeleteSucceeded only if totalCount === 0",
+									"pm.test(\"Set lastDeleteSucceeded env var when totalCount is 0\", function () {",
+									"    if (pfa && typeof pfa.totalCount === \"number\" && pfa.totalCount === 0) {",
+									"        pm.environment.set(\"lastDeleteSucceeded\", true);",
+									"    } else {",
+									"        // Ensure we don't leave stale truthy flag when there are items",
+									"        pm.environment.unset(\"lastDeleteSucceeded\");",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query PendingForApprovals {\r\n    pendingForApprovals(approverId: \"User3\") {\r\n        totalCount\r\n        items {\r\n            id\r\n            isApproved\r\n            status\r\n            storeId\r\n        }\r\n    }\r\n}\r\n",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "approveOrder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Post-response tests for approveOrder GraphQL mutation",
+									"// Validates HTTP 200, absence of GraphQL errors, presence and shape of data.approveOrder,",
+									"// conditional status check, and saves approvedOrderId to environment.",
+									"",
+									"// Helpful console logs",
+									"console.log(\"[approveOrder] Status:\", pm.response.code, pm.response.status);",
+									"try {",
+									"    const bodyText = pm.response.text();",
+									"    console.log(\"[approveOrder] Raw response body:\", bodyText);",
+									"} catch (e) {",
+									"    console.log(\"[approveOrder] Could not read raw body:\", e);",
+									"}",
+									"",
+									"// Parse JSON safely",
+									"let json;",
+									"try {",
+									"    json = pm.response.json();",
+									"} catch (e) {",
+									"    json = null;",
+									"    console.log(\"[approveOrder] Response is not valid JSON:\", e);",
+									"}",
+									"",
+									"pm.test(\"HTTP status is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"GraphQL: response has no errors array\", function () {",
+									"    pm.expect(json).to.be.an(\"object\");",
+									"    // In GraphQL, errors key is absent when successful",
+									"    pm.expect(json.errors, \"errors should be undefined\").to.be.undefined;",
+									"});",
+									"",
+									"pm.test(\"data.approveOrder exists with expected fields and types\", function () {",
+									"    pm.expect(json).to.have.property(\"data\");",
+									"    pm.expect(json.data).to.be.an(\"object\");",
+									"    pm.expect(json.data).to.have.property(\"approveOrder\");",
+									"",
+									"    const approveOrder = json.data.approveOrder;",
+									"    pm.expect(approveOrder).to.be.an(\"object\");",
+									"",
+									"    pm.expect(approveOrder).to.have.property(\"id\");",
+									"    pm.expect(approveOrder.id, \"id should be a string\").to.be.a(\"string\");",
+									"",
+									"    pm.expect(approveOrder).to.have.property(\"status\");",
+									"    pm.expect(approveOrder.status, \"status should be a string\").to.be.a(\"string\");",
+									"",
+									"    pm.expect(approveOrder).to.have.property(\"isApproved\");",
+									"    pm.expect(approveOrder.isApproved, \"isApproved should be a boolean\").to.be.a(\"boolean\");",
+									"});",
+									"",
+									"pm.test(\"If isApproved is true, status must equal 'Approved'\", function () {",
+									"    const approveOrder = json && json.data && json.data.approveOrder;",
+									"    if (approveOrder && approveOrder.isApproved === true) {",
+									"        pm.expect(approveOrder.status).to.eql(\"Approved\");",
+									"    } else {",
+									"        pm.expect(true, \"Request not approved; skipping status check\").to.be.true;",
+									"    }",
+									"});",
+									"",
+									"// Save approveOrder.id to environment variable",
+									"pm.test(\"Save approveOrder.id to environment variable 'approvedOrderId'\", function () {",
+									"    const approveOrder = json && json.data && json.data.approveOrder;",
+									"    pm.expect(approveOrder, \"approveOrder must be present to save id\").to.be.an(\"object\");",
+									"    pm.environment.set(\"approvedOrderId\", approveOrder.id);",
+									"    console.log(\"[approveOrder] Saved environment variable approvedOrderId =\", approveOrder.id);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation approveOrder($command: InputApproveCustomerOrderCommand!) {\r\n  approveOrder(command:$command) {\r\n    id\r\n    status\r\n    isApproved\r\n  }\r\n}",
+								"variables": "{\r\n  \"command\": {\r\n    \"orderId\": \"6\"\r\n  }\r\n}\r\n"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "rejectOrder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Post-response tests for rejectOrder mutation",
+									"// Ensures: HTTP 200, no GraphQL errors, valid data shape, and saves id to environment",
+									"",
+									"(function () {",
+									"    // Utility: Safe JSON parse with graceful fallback",
+									"    function safeParse(body) {",
+									"        try { return body && typeof body === 'string' ? JSON.parse(body) : (body || {}); } catch (e) { return {}; }",
+									"    }",
+									"",
+									"    const status = pm.response.code;",
+									"    const bodyText = pm.response.text();",
+									"    const json = safeParse(bodyText);",
+									"",
+									"    // 1) HTTP status is 200",
+									"    pm.test(\"rejectOrder: HTTP status is 200\", function () {",
+									"        pm.expect(status, \"Expected HTTP 200 but got \" + status + \". Body: \" + bodyText).to.eql(200);",
+									"    });",
+									"",
+									"    // 2) No GraphQL errors",
+									"    pm.test(\"rejectOrder: response has no GraphQL errors\", function () {",
+									"        const hasErrors = Array.isArray(json.errors) && json.errors.length > 0;",
+									"        if (hasErrors) {",
+									"            console.error(\"GraphQL errors present:\", json.errors);",
+									"        }",
+									"        pm.expect(hasErrors, \"GraphQL errors found: \" + JSON.stringify(json.errors)).to.be.false;",
+									"    });",
+									"",
+									"    // 3) Data shape validations",
+									"    pm.test(\"rejectOrder: data.rejectOrder exists with expected fields\", function () {",
+									"        // Existence checks",
+									"        pm.expect(json, \"Response body is not an object or is empty\").to.be.an(\"object\");",
+									"        pm.expect(json.data, \"Missing 'data' property in response\").to.exist;",
+									"        pm.expect(json.data, \"'data' should be an object\").to.be.an(\"object\");",
+									"        pm.expect(json.data.rejectOrder, \"Missing 'data.rejectOrder' in response\").to.exist;",
+									"        pm.expect(json.data.rejectOrder, \"'data.rejectOrder' should be an object\").to.be.an(\"object\");",
+									"",
+									"        const ro = json.data && json.data.rejectOrder ? json.data.rejectOrder : {};",
+									"",
+									"        // Field checks",
+									"        pm.expect(ro).to.have.property(\"id\");",
+									"        pm.expect(ro.id, \"rejectOrder.id should be a non-empty string\").to.be.a(\"string\").that.is.not.empty;",
+									"",
+									"        pm.expect(ro).to.have.property(\"status\");",
+									"        pm.expect(ro.status, \"rejectOrder.status must equal 'Rejected'\").to.eql(\"Rejected\");",
+									"",
+									"        pm.expect(ro).to.have.property(\"isApproved\");",
+									"        pm.expect(ro.isApproved, \"rejectOrder.isApproved must be false\").to.eql(false);",
+									"    });",
+									"",
+									"    // 4) Save id to environment variable approvedOrderId (idempotent)",
+									"    pm.test(\"rejectOrder: save id to environment variable 'approvedOrderId'\", function () {",
+									"        const id = json && json.data && json.data.rejectOrder && json.data.rejectOrder.id;",
+									"        if (typeof id === \"string\" && id.length > 0) {",
+									"            pm.environment.set(\"approvedOrderId\", id);",
+									"        } else {",
+									"            console.error(\"Could not save approvedOrderId; invalid id:\", id);",
+									"        }",
+									"        pm.expect(typeof id === \"string\" && id.length > 0, \"Cannot save approvedOrderId; invalid id: \" + id).to.be.true;",
+									"    });",
+									"",
+									"    // 5) Content-Type informational check (not failing, just informative)",
+									"    pm.test(\"rejectOrder: Content-Type header present\", function () {",
+									"        pm.response.to.have.header(\"Content-Type\");",
+									"    });",
+									"",
+									"    // 6) Graceful handling for unexpected shapes already covered by safeParse and explicit messages",
+									"})();"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation rejectOrder($command: InputRejectCustomerOrderCommand!) {\r\n  rejectOrder(command:$command) {\r\n    id\r\n    status\r\n    isApproved\r\n  }\r\n}",
+								"variables": "{\r\n  \"command\": {\r\n    \"orderId\": \"6\"\r\n  }\r\n}"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "vcst-qa-storefront.govirto.com/sign-in",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Remove data",
+			"item": [
+				{
+					"name": "deleteUser",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Tests for DeleteUsers GraphQL mutation response",
+									"// Validates success path and provides clear messages on failure.",
+									"",
+									"// 1) HTTP status is 200",
+									"pm.test(\"HTTP status is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// 2) Response body is valid JSON",
+									"let json;",
+									"pm.test(\"Response body is valid JSON\", function () {",
+									"    try {",
+									"        json = pm.response.json();",
+									"        pm.expect(json).to.be.an(\"object\");",
+									"    } catch (e) {",
+									"        pm.expect.fail(\"Response is not valid JSON: \" + e.message);",
+									"    }",
+									"});",
+									"",
+									"// Guard: Ensure we have a parsed JSON object for subsequent tests",
+									"if (typeof json !== 'object' || json === null) {",
+									"    // Stop further tests to avoid noisy failures",
+									"    throw new Error(\"Stopping tests: response is not valid JSON.\");",
+									"}",
+									"",
+									"// 3) GraphQL top-level errors array should be absent",
+									"pm.test(\"GraphQL errors array is absent (no top-level errors)\", function () {",
+									"    pm.expect(json).to.not.have.property(\"errors\", \"Top-level GraphQL errors present\");",
+									"});",
+									"",
+									"",
+									"// Prepare a safe reference for deeper assertions",
+									"const del = json && json.data ? json.data.deleteUsers : undefined;",
+									"",
+									"// 5) succeeded is boolean",
+									"pm.test(\"'succeeded' is a boolean\", function () {",
+									"    pm.expect(del, \"'deleteUsers' should be an object\").to.be.an(\"object\");",
+									"    pm.expect(Object.prototype.hasOwnProperty.call(del, \"succeeded\"), \"Missing 'succeeded' field\").to.eql(true);",
+									"    pm.expect(typeof del.succeeded, \"'succeeded' should be boolean\").to.eql(\"boolean\");",
+									"});",
+									"",
+									"// 6) succeeded is true",
+									"pm.test(\"'succeeded' is true\", function () {",
+									"    pm.expect(Boolean(del && del.succeeded), \"Expected 'succeeded' to be true\").to.eql(true);",
+									"});",
+									"",
+									"// 7) errors is an array",
+									"pm.test(\"'errors' is an array\", function () {",
+									"    pm.expect(del, \"'deleteUsers' should be an object\").to.be.an(\"object\");",
+									"    pm.expect(Object.prototype.hasOwnProperty.call(del, \"errors\"), \"Missing 'errors' field\").to.eql(true);",
+									"    pm.expect(Array.isArray(del.errors), \"'errors' should be an array\").to.eql(true);",
+									"});",
+									"",
+									"// 8) errors array length is 0 when succeeded is true",
+									"pm.test(\"'errors' array is empty when succeeded is true\", function () {",
+									"    if (del && del.succeeded === true) {",
+									"        pm.expect(del.errors.length, \"Expected no errors when deletion succeeds\").to.eql(0);",
+									"    } else {",
+									"        pm.expect.fail(\"Cannot assert empty errors because 'succeeded' is not true\");",
+									"    }",
+									"});",
+									"",
+									"// 9) Save 'succeeded' to environment variable 'lastDeleteSucceeded'",
+									"pm.test(\"Save 'succeeded' to env var 'lastDeleteSucceeded'\", function () {",
+									"    const valueToSave = del && typeof del.succeeded === 'boolean' ? String(del.succeeded) : \"\";",
+									"    pm.environment.set(\"lastDeleteSucceeded\", valueToSave);",
+									"    pm.expect(pm.environment.get(\"lastDeleteSucceeded\"), \"Environment variable 'lastDeleteSucceeded' should be set\").to.eql(String(del && del.succeeded));",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation DeleteUsers {\r\n    deleteUsers(command: { userNames: [\"{{userName}}\"] }) {\r\n        succeeded\r\n        errors {\r\n            code\r\n            description\r\n        }\r\n    }\r\n}\r\n",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteContact",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validate status code",
+									"pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+									"",
+									"// Validate response is JSON",
+									"pm.test('Response is valid JSON', function () { pm.response.to.be.json; });",
+									"",
+									"// Validate GraphQL deleteContact mutation result",
+									"pm.test('deleteContact returned true', function () {",
+									"    var json = pm.response.json();",
+									"    pm.expect(json).to.have.property('data');",
+									"    pm.expect(json.data).to.have.property('deleteContact');",
+									"    pm.expect(json.data.deleteContact).to.eql(true);",
+									"});",
+									"",
+									"// Set/update env var based on mutation result",
+									"try {",
+									"    var json = pm.response.json();",
+									"    if (json && json.data && json.data.deleteContact === true) {",
+									"        pm.environment.set('lastDeleteSucceeded', 'true');",
+									"    } else {",
+									"        pm.environment.set('lastDeleteSucceeded', 'false');",
+									"    }",
+									"} catch (e) {",
+									"    // If parsing fails, set to false",
+									"    pm.environment.set('lastDeleteSucceeded', 'false');",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation DeleteContact {\r\n    deleteContact(command: { contactId: \"{{contactId}}\" })\r\n}\r\n",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/graphql",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteOrganization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/members?ids={{organizationId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"members"
+							],
+							"query": [
+								{
+									"key": "ids",
+									"value": "{{organizationId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get Contact",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Body is undefined\", function () {\r",
+									"    var jsonbody = pm.response.body;\r",
+									"    pm.expect(jsonbody).to.be.undefined;\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json, text/plain, */*"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/members/{{contactId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"members",
+								"{{contactId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Tests for POST {{baseUrl}}/api/members/search using {{userName}}",
+									"// Validates status, headers, response shape, timings, and per-item fields",
+									"",
+									"let json;",
+									"",
+									"pm.test(\"Response body is valid JSON\", function () {",
+									"    let isJSON = true;",
+									"    try {",
+									"        json = pm.response.json();",
+									"    } catch (e) {",
+									"        isJSON = false;",
+									"    }",
+									"    pm.expect(isJSON, \"Response body is not valid JSON\").to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Content-Type header contains application/json\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\");",
+									"    const ct = pm.response.headers.get(\"Content-Type\") || \"\";",
+									"    pm.expect(ct.toLowerCase()).to.include(\"application/json\");",
+									"});",
+									"",
+									"pm.test(\"Response time is < 1000 ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});",
+									"",
+									"pm.test(\"Response JSON has totalCount (number) and results (array)\", function () {",
+									"    // Ensure json is parsed even if earlier test skipped parsing",
+									"    if (json === undefined) {",
+									"        json = pm.response.json();",
+									"    }",
+									"    pm.expect(json).to.be.an(\"object\");",
+									"    pm.expect(json).to.have.property(\"totalCount\");",
+									"    pm.expect(json.totalCount, \"totalCount should be a number\").to.be.a(\"number\");",
+									"    pm.expect(json).to.have.property(\"results\");",
+									"    pm.expect(json.results, \"results should be an array\").to.be.an(\"array\");",
+									"});",
+									"",
+									"pm.test(\"totalCount = 0\", function () {",
+									"    if (json === undefined) {",
+									"        json = pm.response.json();",
+									"    }",
+									"    if (json && typeof json.totalCount === \"number\" && Array.isArray(json.results) && json.totalCount == 0) {",
+									"    pm.expect(json.totalCount, \"totalCount should be 0 when there are no results\").to.be.eql(0);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "application/json, text/plain, */*"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"memberId\": null,\r\n    \"keyword\": \"postman-test123@mail.com\",\r\n    \"deepSearch\": false,\r\n    \"sort\": \"\",\r\n    \"skip\": 0,\r\n    \"take\": 20,\r\n    \"objectType\": \"Member\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/members/search",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"members",
+								"search"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "userId",
+			"value": "42765f34-51cf-4994-806b-e82e65fd5c14"
+		},
+		{
+			"key": "userName",
+			"value": "mutykovaelena@gmail.com"
+		},
+		{
+			"key": "userPassword",
+			"value": "Password1"
+		},
+		{
+			"key": "organizationId",
+			"value": "645e0753-36d7-4c96-a907-e212d8e4f787"
+		},
+		{
+			"key": "contactId",
+			"value": ""
+		},
+		{
+			"key": "cartId",
+			"value": "8d58d485-9589-48e3-9b04-2ad6835f7408"
+		},
+		{
+			"key": "productId_1",
+			"value": ""
+		},
+		{
+			"key": "productId_2",
+			"value": ""
+		},
+		{
+			"key": "productId_3",
+			"value": ""
+		},
+		{
+			"key": "productIds",
+			"value": ""
+		},
+		{
+			"key": "cartItemsCount",
+			"value": ""
+		},
+		{
+			"key": "cartItemsQuantity",
+			"value": ""
+		},
+		{
+			"key": "cartIsAnonymous",
+			"value": ""
+		},
+		{
+			"key": "orderId",
+			"value": ""
+		},
+		{
+			"key": "orderNumber",
+			"value": ""
+		},
+		{
+			"key": "shipmentId",
+			"value": ""
+		},
+		{
+			"key": "checkoutId",
+			"value": ""
+		},
+		{
+			"key": "paymentId",
+			"value": ""
+		}
+	]
+}

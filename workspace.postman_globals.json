@@ -1,0 +1,45 @@
+{
+	"id": "a521b7d5-f4f4-4695-8858-0c27b753761f",
+	"values": [
+		{
+			"key": "baseUrl",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "url",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "adminName",
+			"value": "",
+			"type": "secret",
+			"enabled": true
+		},
+		{
+			"key": "adminPassword",
+			"value": "",
+			"type": "secret",
+			"enabled": true
+		},
+		{
+			"key": "adminToken",
+			"value": "",
+			"type": "secret",
+			"enabled": true
+		},
+		{
+			"key": "adminRefresh_token",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		}
+	],
+	"name": "Globals",
+	"_postman_variable_scope": "globals",
+	"_postman_exported_at": "2025-11-29T19:16:21.143Z",
+	"_postman_exported_using": "Postman/11.73.5"
+}
