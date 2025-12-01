@@ -19,13 +19,13 @@ namespace VirtoCommerce.XapiExample.Data.Services
     {
         public static List<CustomerOrder> Entities { get; set; } = new List<CustomerOrder>
         {
-            new CustomerOrder { Id = "1", StoreId = "Electronics", IsApproved = true, Status = "Approved", CustomerId = "User1" },
+            new CustomerOrder { Id = "1", StoreId = "Electronics", IsApproved = false, Status = "Approved", CustomerId = "User1" },
             new CustomerOrder { Id = "2", StoreId = "Electronics", IsApproved = false, Status = "New", CustomerId = "User1" },
             new CustomerOrder { Id = "3", StoreId = "Electronics", IsApproved = false, Status = "New", CustomerId = "User2" },
             new CustomerOrder { Id = "4", StoreId = "B2B", IsApproved = false, Status = "New", CustomerId = "User2" },
             new CustomerOrder { Id = "5", StoreId = "B2B", IsApproved = false, Status = "New", CustomerId = "User2" },
             new CustomerOrder { Id = "6", StoreId = "B2B", IsApproved = false, Status = "Rejected", CustomerId = "User3" },
-            new CustomerOrder { Id = "7", StoreId = "B2B", IsApproved = true, Status = "Approved", CustomerId = "User3" },
+            new CustomerOrder { Id = "7", StoreId = "B2B", IsApproved = false, Status = "Approved", CustomerId = "User3" },
         };
 
         public Task<CustomerOrderSearchResult> SearchAsync(CustomerOrderSearchCriteria criteria, bool clone = true)
