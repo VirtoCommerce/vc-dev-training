@@ -1,0 +1,92 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8FC2C169-85D2-43EF-A9D0-EA820975E567}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VirtoCommerce.XapiTraning.Web", "src\VirtoCommerce.XapiTraning.Web\VirtoCommerce.XapiTraning.Web.csproj", "{A56AFC81-3EBF-4595-8AA2-580E214773C9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VirtoCommerce.XapiTraning.Data", "src\VirtoCommerce.XapiTraning.Data\VirtoCommerce.XapiTraning.Data.csproj", "{BCF23F12-3CFB-403D-BA28-CCD67E60411D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VirtoCommerce.XapiTraning.Core", "src\VirtoCommerce.XapiTraning.Core\VirtoCommerce.XapiTraning.Core.csproj", "{EAEF4F52-55F7-4473-B2B8-B6BCA1103A5A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VirtoCommerce.XapiTraning.Data.MySql", "src\VirtoCommerce.XapiTraning.Data.MySql\VirtoCommerce.XapiTraning.Data.MySql.csproj", "{DF90B907-EA0E-44EF-9CB2-1B6234A91FB0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VirtoCommerce.XapiTraning.Data.PostgreSql", "src\VirtoCommerce.XapiTraning.Data.PostgreSql\VirtoCommerce.XapiTraning.Data.PostgreSql.csproj", "{98D1B73A-406D-41AC-8BFE-BBC832CB17B8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VirtoCommerce.XapiTraning.Data.SqlServer", "src\VirtoCommerce.XapiTraning.Data.SqlServer\VirtoCommerce.XapiTraning.Data.SqlServer.csproj", "{43F1B86F-5360-4FB9-B294-B5F61FAD936A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VirtoCommerce.XapiTraning.ExperienceApi", "src\VirtoCommerce.XapiTraning.ExperienceApi\VirtoCommerce.XapiTraning.ExperienceApi.csproj", "{331A9139-3B62-4190-9430-CB746AE8805F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{9BE501ED-77E2-477D-B726-68DE6D46C5EB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VirtoCommerce.XapiTraning.Tests", "tests\VirtoCommerce.XapiTraning.Tests\VirtoCommerce.XapiTraning.Tests.csproj", "{CAB2297A-6AD5-4544-84F3-15ACB4B05D1A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C314F313-ACE5-456C-9D16-730B695DCF24}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		LICENSE = LICENSE
+		module.ignore = module.ignore
+		README.md = README.md
+		VirtoCommerce.XapiTraning.sln.DotSettings = VirtoCommerce.XapiTraning.sln.DotSettings
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A56AFC81-3EBF-4595-8AA2-580E214773C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A56AFC81-3EBF-4595-8AA2-580E214773C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A56AFC81-3EBF-4595-8AA2-580E214773C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A56AFC81-3EBF-4595-8AA2-580E214773C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCF23F12-3CFB-403D-BA28-CCD67E60411D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCF23F12-3CFB-403D-BA28-CCD67E60411D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCF23F12-3CFB-403D-BA28-CCD67E60411D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCF23F12-3CFB-403D-BA28-CCD67E60411D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EAEF4F52-55F7-4473-B2B8-B6BCA1103A5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EAEF4F52-55F7-4473-B2B8-B6BCA1103A5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EAEF4F52-55F7-4473-B2B8-B6BCA1103A5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EAEF4F52-55F7-4473-B2B8-B6BCA1103A5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF90B907-EA0E-44EF-9CB2-1B6234A91FB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF90B907-EA0E-44EF-9CB2-1B6234A91FB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF90B907-EA0E-44EF-9CB2-1B6234A91FB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF90B907-EA0E-44EF-9CB2-1B6234A91FB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98D1B73A-406D-41AC-8BFE-BBC832CB17B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98D1B73A-406D-41AC-8BFE-BBC832CB17B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98D1B73A-406D-41AC-8BFE-BBC832CB17B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98D1B73A-406D-41AC-8BFE-BBC832CB17B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43F1B86F-5360-4FB9-B294-B5F61FAD936A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43F1B86F-5360-4FB9-B294-B5F61FAD936A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43F1B86F-5360-4FB9-B294-B5F61FAD936A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43F1B86F-5360-4FB9-B294-B5F61FAD936A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{331A9139-3B62-4190-9430-CB746AE8805F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{331A9139-3B62-4190-9430-CB746AE8805F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{331A9139-3B62-4190-9430-CB746AE8805F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{331A9139-3B62-4190-9430-CB746AE8805F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAB2297A-6AD5-4544-84F3-15ACB4B05D1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAB2297A-6AD5-4544-84F3-15ACB4B05D1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAB2297A-6AD5-4544-84F3-15ACB4B05D1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAB2297A-6AD5-4544-84F3-15ACB4B05D1A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A56AFC81-3EBF-4595-8AA2-580E214773C9} = {8FC2C169-85D2-43EF-A9D0-EA820975E567}
+		{BCF23F12-3CFB-403D-BA28-CCD67E60411D} = {8FC2C169-85D2-43EF-A9D0-EA820975E567}
+		{EAEF4F52-55F7-4473-B2B8-B6BCA1103A5A} = {8FC2C169-85D2-43EF-A9D0-EA820975E567}
+		{DF90B907-EA0E-44EF-9CB2-1B6234A91FB0} = {8FC2C169-85D2-43EF-A9D0-EA820975E567}
+		{98D1B73A-406D-41AC-8BFE-BBC832CB17B8} = {8FC2C169-85D2-43EF-A9D0-EA820975E567}
+		{43F1B86F-5360-4FB9-B294-B5F61FAD936A} = {8FC2C169-85D2-43EF-A9D0-EA820975E567}
+		{331A9139-3B62-4190-9430-CB746AE8805F} = {8FC2C169-85D2-43EF-A9D0-EA820975E567}
+		{CAB2297A-6AD5-4544-84F3-15ACB4B05D1A} = {9BE501ED-77E2-477D-B726-68DE6D46C5EB}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A3DD67F2-9C37-49DC-AE51-DD1B327F3D3D}
+	EndGlobalSection
+EndGlobal

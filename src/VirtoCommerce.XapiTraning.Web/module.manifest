@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+  <id>VirtoCommerce.XapiTraning</id>
+  <version>3.800.0</version>
+  <version-tag></version-tag>
+
+  <platformVersion>3.876.0</platformVersion>
+  <dependencies>
+    <dependency id="VirtoCommerce.Xapi" version="3.904.0" />
+  </dependencies>
+
+  <title>VirtoCommerce XapiTraning</title>
+  <description>VirtoCommerce XapiTraning</description>
+
+  <authors>
+    <author>Jon Doe</author>
+  </authors>
+  <owners>
+    <owner>VirtoCommerce</owner>
+  </owners>
+
+  <projectUrl>https://github.com/VirtoCommerce/vc-module-xapi-traning</projectUrl>
+  <iconUrl>Modules/$(VirtoCommerce.XapiTraning)/Content/logo.png</iconUrl>
+  <requireLicenseAcceptance>false</requireLicenseAcceptance>
+
+  <assemblyFile>VirtoCommerce.XapiTraning.Web.dll</assemblyFile>
+  <moduleType>VirtoCommerce.XapiTraning.Web.Module, VirtoCommerce.XapiTraning.Web</moduleType>
+
+  <releaseNotes>First version.</releaseNotes>
+  <copyright>Copyright © 2025 VirtoCommerce. All rights reserved</copyright>
+  <tags>extension module</tags>
+  <useFullTypeNameInSwagger>false</useFullTypeNameInSwagger>
+</module>

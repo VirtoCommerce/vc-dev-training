@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!-- Project is a test project -->
+    <SonarQubeTestProject>true</SonarQubeTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\VirtoCommerce.XapiTraning.Core\VirtoCommerce.XapiTraning.Core.csproj" />
+    <ProjectReference Include="..\..\src\VirtoCommerce.XapiTraning.Data\VirtoCommerce.XapiTraning.Data.csproj" />
+    <ProjectReference Include="..\..\src\VirtoCommerce.XapiTraning.ExperienceApi\VirtoCommerce.XapiTraning.ExperienceApi.csproj" />
+    <ProjectReference Include="..\..\src\VirtoCommerce.XapiTraning.Web\VirtoCommerce.XapiTraning.Web.csproj" />
+  </ItemGroup>
+</Project>

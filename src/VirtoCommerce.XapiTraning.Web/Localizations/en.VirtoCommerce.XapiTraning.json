@@ -1,0 +1,24 @@
+{
+  "XapiTraning": {
+    "blades": {
+      "hello-world": {
+        "title": "Hello world blade"
+      }
+    }
+  },
+  "permissions": {
+    "xapi-traning:access": "Open XapiTraning menu",
+    "xapi-traning:create": "Create XapiTraning related data",
+    "xapi-traning:read": "View XapiTraning related data",
+    "xapi-traning:update": "Update XapiTraning related data",
+    "xapi-traning:delete": "Delete XapiTraning related data"
+  },
+  "settings": {
+    "XapiTraning": {
+      "Enabled": {
+        "title": "XapiTraning Enabled",
+        "description": "XapiTraning Enabled setting"
+      }
+    }
+  }
+}
