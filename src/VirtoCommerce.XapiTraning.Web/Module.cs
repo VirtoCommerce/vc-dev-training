@@ -11,6 +11,7 @@ using VirtoCommerce.Platform.Data.PostgreSql.Extensions;
 using VirtoCommerce.Platform.Data.SqlServer.Extensions;
 using VirtoCommerce.Xapi.Core.Extensions;
 using VirtoCommerce.Xapi.Core.Infrastructure;
+using VirtoCommerce.XapiExample.Data.Services;
 using VirtoCommerce.XapiTraning.Core;
 using VirtoCommerce.XapiTraning.Data.MySql;
 using VirtoCommerce.XapiTraning.Data.PostgreSql;
@@ -52,6 +53,8 @@ public class Module : IModule, IHasConfiguration
 
         // Register services
         //serviceCollection.AddTransient<IMyService, MyService>();
+
+        serviceCollection.AddSingleton<IOrderApproveService, OrderApproveMockService>();
 
         // Register GraphQL schema
         _ = new GraphQLBuilder(serviceCollection, builder =>

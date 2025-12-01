@@ -12,5 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VirtoCommerce.XapiTraning.Core\VirtoCommerce.XapiTraning.Core.csproj" />
+    <ProjectReference Include="..\VirtoCommerce.XapiTraning.Data\VirtoCommerce.XapiTraning.Data.csproj" />
   </ItemGroup>
 </Project>
