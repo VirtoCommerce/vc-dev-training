@@ -1,0 +1,24 @@
+{
+  "XapiExample": {
+    "blades": {
+      "hello-world": {
+        "title": "Hello world blade"
+      }
+    }
+  },
+  "permissions": {
+    "xapi-example:access": "Open XapiExample menu",
+    "xapi-example:create": "Create XapiExample related data",
+    "xapi-example:read": "View XapiExample related data",
+    "xapi-example:update": "Update XapiExample related data",
+    "xapi-example:delete": "Delete XapiExample related data"
+  },
+  "settings": {
+    "XapiExample": {
+      "Enabled": {
+        "title": "XapiExample Enabled",
+        "description": "XapiExample Enabled setting"
+      }
+    }
+  }
+}
