@@ -1,7 +1,7 @@
-using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+using VirtoCommerce.CustomerModule.Core.Model;
+using VirtoCommerce.CustomerModule.Core.Services;
 using VirtoCommerce.Platform.Core;
 using VirtoCommerce.Platform.Core.Security;
 using VirtoCommerce.XapiExample.ExperienceApi.Queries;
@@ -14,28 +14,33 @@ public class PendingOrderAuthorizationRequirement : IAuthorizationRequirement
 
 public class PendingOrdersAuthorizationHandler : AuthorizationHandler<PendingOrderAuthorizationRequirement>
 {
-    private readonly Func<UserManager<ApplicationUser>> _userManagerFactory;
+    private readonly IMemberResolver _memberResolver;
 
-    public PendingOrdersAuthorizationHandler(Func<UserManager<ApplicationUser>> userManagerFactory)
+    public PendingOrdersAuthorizationHandler(IMemberResolver memberResolver)
     {
-        _userManagerFactory = userManagerFactory;
+        _memberResolver = memberResolver;
     }
 
-    protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, PendingOrderAuthorizationRequirement requirement)
+    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, PendingOrderAuthorizationRequirement requirement)
     {
         var result = context.User.IsInRole(PlatformConstants.Security.SystemRoles.Administrator);
 
         if (!result)
         {
-            var currentUserId = GetUserId(context);
-
             switch (context.Resource)
             {
                 case PendingForApprovalsQuery query:
-                    result = query.ApproverId == currentUserId;
-                    break;
-                case string userId:
-                    result = userId == currentUserId;
+                    result = query.CustomerId == GetUserId(context);
+
+                    if (!result)
+                    {
+                        var customer = await _memberResolver.ResolveMemberByIdAsync(query.CustomerId) as Contact;
+                        if (customer != null)
+                        {
+                            result = customer.Organizations?.Contains(query.OrganizationId) ?? false;
+                        }
+                    }
+
                     break;
             }
         }
@@ -48,8 +53,6 @@ public class PendingOrdersAuthorizationHandler : AuthorizationHandler<PendingOrd
         {
             context.Fail();
         }
-
-        return Task.CompletedTask;
     }
 
     private static string GetUserId(AuthorizationHandlerContext context)

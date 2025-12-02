@@ -30,6 +30,7 @@ public class PendingForApprovalsQueryHandler : IQueryHandler<PendingForApprovals
         var criteria = new ExtendedCustomerOrderSearchCriteria
         {
             CustomerId = request.CustomerId,
+            OrganizationId = request.OrganizationId,
             Status = "PendingApproval",
             Skip = request.Skip,
             Take = request.Take,

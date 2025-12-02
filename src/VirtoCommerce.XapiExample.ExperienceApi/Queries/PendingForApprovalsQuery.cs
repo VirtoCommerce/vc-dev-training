@@ -8,8 +8,6 @@ namespace VirtoCommerce.XapiExample.ExperienceApi.Queries;
 
 public class PendingForApprovalsQuery : SearchOrderQuery
 {
-    public string ApproverId { get; set; }
-
     public string CustomerId { get; set; }
 
     public override IEnumerable<QueryArgument> GetArguments()
@@ -19,7 +17,6 @@ public class PendingForApprovalsQuery : SearchOrderQuery
             yield return argument;
         }
 
-        yield return Argument<StringGraphType>(nameof(ApproverId));
         yield return Argument<StringGraphType>(nameof(CustomerId));
     }
 
@@ -27,7 +24,6 @@ public class PendingForApprovalsQuery : SearchOrderQuery
     {
         base.Map(context);
 
-        ApproverId = context.GetArgument<string>(nameof(ApproverId)) ?? context.GetCurrentUserId();
-        CustomerId = context.GetArgument<string>(nameof(CustomerId));
+        CustomerId = context.GetArgument<string>(nameof(CustomerId)) ?? context.GetCurrentUserId();
     }
 }
