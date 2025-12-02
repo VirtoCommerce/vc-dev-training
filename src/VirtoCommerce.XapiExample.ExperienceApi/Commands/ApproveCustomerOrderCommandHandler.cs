@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
 using MediatR;
@@ -25,7 +25,7 @@ public class ApproveCustomerOrderCommandHandler : IRequestHandler<ApproveCustome
     {
         var orderAggregate = await _customerOrderAggregateRepository.GetOrderByIdAsync(request.OrderId);
 
-        var validationContext = new OrderValidatonContext(orderAggregate);
+        var validationContext = new OrderValidatonContext((ExtendedCustomerOrderAggregate)orderAggregate);
         AbstractTypeFactory<OrderAppovedValidtor>.TryCreateInstance().ValidateAndThrow(validationContext);
 
         if (orderAggregate is ExtendedCustomerOrderAggregate extendedCustomerOrderAggregate)
