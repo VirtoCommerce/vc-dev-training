@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using GraphQL;
+using GraphQL.Types;
 using VirtoCommerce.Xapi.Core.Extensions;
 using VirtoCommerce.XOrder.Core.Queries;
 
@@ -8,10 +10,20 @@ public class PendingForApprovalsQuery : SearchOrderQuery
 {
     public string ApproverId { get; set; }
 
+    public override IEnumerable<QueryArgument> GetArguments()
+    {
+        foreach (var argument in base.GetArguments())
+        {
+            yield return argument;
+        }
+
+        yield return Argument<StringGraphType>(nameof(ApproverId));
+    }
+
     public override void Map(IResolveFieldContext context)
     {
         base.Map(context);
 
-        ApproverId = context.GetCurrentUserId();
+        ApproverId = context.GetArgument<string>(nameof(ApproverId)) ?? context.GetCurrentUserId();
     }
 }

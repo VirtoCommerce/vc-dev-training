@@ -86,7 +86,7 @@ public class Module : IModule, IHasConfiguration
         });
 
         // types
-        serviceCollection.AddSchemaType<ExtendedCustomerOrderType>().OverrideType<CustomerOrderType, ExtendedCustomerOrderType>(); // override CustomerOrder graph type
+        serviceCollection.OverrideGraphType<CustomerOrderType, ExtendedCustomerOrderType>();  // override CustomerOrder graph type
         serviceCollection.AddSchemaType<InputChangeOrderStatusExtendedType>().OverrideType<InputChangeOrderStatusType, InputChangeOrderStatusExtendedType>(); // override input type
 
         // queries

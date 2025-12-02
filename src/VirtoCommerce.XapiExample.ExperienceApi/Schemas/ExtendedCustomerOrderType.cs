@@ -11,7 +11,9 @@ namespace VirtoCommerce.XapiExample.ExperienceApi.Schemas;
 //[GraphQLMetadata("CustomerOrderType")]
 public class ExtendedCustomerOrderType : CustomerOrderType
 {
-    public ExtendedCustomerOrderType(IDynamicPropertyResolverService dynamicPropertyResolverService, IPaymentMethodsSearchService paymentMethodsSearchService, ILocalizableSettingService localizableSettingService)
+    public ExtendedCustomerOrderType(IDynamicPropertyResolverService dynamicPropertyResolverService,
+        IPaymentMethodsSearchService paymentMethodsSearchService,
+        ILocalizableSettingService localizableSettingService)
         : base(dynamicPropertyResolverService, paymentMethodsSearchService, localizableSettingService)
     {
         Name = "CustomerOrderType"; // otherwise the type name in the schema will be "ExtendedCustomerOrderType"
