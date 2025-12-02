@@ -1,12 +1,12 @@
-using VirtoCommerce.XOrder.Core;
+using VirtoCommerce.XapiExample.ExperienceApi.Aggregates;
 
 namespace VirtoCommerce.XapiExample.ExperienceApi.Validators;
 
 public class OrderValidatonContext
 {
-    public CustomerOrderAggregate Aggregate { get; set; }
+    public ExtendedCustomerOrderAggregate Aggregate { get; set; }
 
-    public OrderValidatonContext(CustomerOrderAggregate aggregate)
+    public OrderValidatonContext(ExtendedCustomerOrderAggregate aggregate)
     {
         Aggregate = aggregate;
     }
