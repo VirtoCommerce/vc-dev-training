@@ -4,23 +4,24 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using VirtoCommerce.Platform.Core;
 using VirtoCommerce.Platform.Core.Security;
+using VirtoCommerce.XapiExample.ExperienceApi.Queries;
 
 namespace VirtoCommerce.XapiExample.ExperienceApi.Authorization;
 
-public class AuthorizationRequirement : IAuthorizationRequirement
+public class PendingOrderAuthorizationRequirement : IAuthorizationRequirement
 {
 }
 
-public class AuthorizationHandler : AuthorizationHandler<AuthorizationRequirement>
+public class PendingOrdersAuthorizationHandler : AuthorizationHandler<PendingOrderAuthorizationRequirement>
 {
     private readonly Func<UserManager<ApplicationUser>> _userManagerFactory;
 
-    public AuthorizationHandler(Func<UserManager<ApplicationUser>> userManagerFactory)
+    public PendingOrdersAuthorizationHandler(Func<UserManager<ApplicationUser>> userManagerFactory)
     {
         _userManagerFactory = userManagerFactory;
     }
 
-    protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, AuthorizationRequirement requirement)
+    protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, PendingOrderAuthorizationRequirement requirement)
     {
         var result = context.User.IsInRole(PlatformConstants.Security.SystemRoles.Administrator);
 
@@ -30,6 +31,9 @@ public class AuthorizationHandler : AuthorizationHandler<AuthorizationRequiremen
 
             switch (context.Resource)
             {
+                case PendingForApprovalsQuery query:
+                    result = query.ApproverId == currentUserId;
+                    break;
                 case string userId:
                     result = userId == currentUserId;
                     break;

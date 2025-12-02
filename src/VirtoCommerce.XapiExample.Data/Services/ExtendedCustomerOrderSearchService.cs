@@ -29,7 +29,8 @@ public class ExtendedCustomerOrderSearchService : CustomerOrderSearchService
         {
             if (!extendedCriteria.RejectionReason.IsNullOrEmpty())
             {
-                query = query.Where(x => x is ExtendedCustomerOrderEntity && ((ExtendedCustomerOrderEntity)x).RejectionReason == extendedCriteria.RejectionReason);
+                query = query.Where(x => x is ExtendedCustomerOrderEntity && ((ExtendedCustomerOrderEntity)x).RejectionReason != null
+                    && ((ExtendedCustomerOrderEntity)x).RejectionReason.Contains(extendedCriteria.RejectionReason));
             }
 
             if (extendedCriteria.IsRejected)

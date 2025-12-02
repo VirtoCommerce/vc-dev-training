@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using GraphQL.MicrosoftDI;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +30,7 @@ using VirtoCommerce.XapiExample.Data.Services;
 using VirtoCommerce.XapiExample.Data.SqlServer;
 using VirtoCommerce.XapiExample.ExperienceApi;
 using VirtoCommerce.XapiExample.ExperienceApi.Aggregates;
+using VirtoCommerce.XapiExample.ExperienceApi.Authorization;
 using VirtoCommerce.XapiExample.ExperienceApi.Commands;
 using VirtoCommerce.XapiExample.ExperienceApi.Queries;
 using VirtoCommerce.XapiExample.ExperienceApi.Schemas;
@@ -71,7 +73,7 @@ public class Module : IModule, IHasConfiguration
         AbstractTypeFactory<CustomerOrder>.OverrideType<CustomerOrder, ExtendedCustomerOrder>()
             .WithFactory(() => new ExtendedCustomerOrder { OperationType = "CustomerOrder" });
 
-        // extend aggregate
+        // add extend aggregate
         serviceCollection.AddTransient<ExtendedCustomerOrderAggregate>();
         serviceCollection.AddTransient<Func<CustomerOrderAggregate>>(provider => () => provider.CreateScope().ServiceProvider.GetRequiredService<ExtendedCustomerOrderAggregate>());
 
@@ -79,21 +81,24 @@ public class Module : IModule, IHasConfiguration
         serviceCollection.AddTransient<IOrderRepository, XapiExampleRepository>();
         serviceCollection.AddTransient<ICustomerOrderSearchService, ExtendedCustomerOrderSearchService>();
 
+        // override types
+        serviceCollection.OverrideGraphType<CustomerOrderType, ExtendedCustomerOrderType>();  // override CustomerOrder graph type
+        serviceCollection.AddSchemaType<InputChangeOrderStatusExtendedType>().OverrideType<InputChangeOrderStatusType, InputChangeOrderStatusExtendedType>(); // override input type
+
         // Register GraphQL schema
         _ = new GraphQLBuilder(serviceCollection, builder =>
         {
             builder.AddSchema(serviceCollection, typeof(XapiAssemblyMarker));
         });
 
-        // types
-        serviceCollection.OverrideGraphType<CustomerOrderType, ExtendedCustomerOrderType>();  // override CustomerOrder graph type
-        serviceCollection.AddSchemaType<InputChangeOrderStatusExtendedType>().OverrideType<InputChangeOrderStatusType, InputChangeOrderStatusExtendedType>(); // override input type
-
-        // queries
+        // override queries
         serviceCollection.OverrideQueryType<SearchCustomerOrderQuery, ExtendedSearchCustomerOrderQuery>().WithQueryHandler<ExtendedSearchCustomerOrderQueryHandler>(); // override handler and query argumets by using builder pattern
 
-        // mutations
+        // override mutations
         serviceCollection.OverrideCommandType<ChangeOrderStatusCommand, ChangeOrderStatusCommandExtended>().WithCommandHandler<ChangeOrderStatusCommandExtendedHandler>(); // override handler and command
+
+        // add auth handler
+        serviceCollection.AddSingleton<IAuthorizationHandler, PendingOrdersAuthorizationHandler>();
 
         serviceCollection.AddSingleton<ScopedSchemaFactory<XapiAssemblyMarker>>();
     }

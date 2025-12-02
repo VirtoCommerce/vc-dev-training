@@ -10,6 +10,8 @@ public class PendingForApprovalsQuery : SearchOrderQuery
 {
     public string ApproverId { get; set; }
 
+    public string CustomerId { get; set; }
+
     public override IEnumerable<QueryArgument> GetArguments()
     {
         foreach (var argument in base.GetArguments())
@@ -18,6 +20,7 @@ public class PendingForApprovalsQuery : SearchOrderQuery
         }
 
         yield return Argument<StringGraphType>(nameof(ApproverId));
+        yield return Argument<StringGraphType>(nameof(CustomerId));
     }
 
     public override void Map(IResolveFieldContext context)
@@ -25,5 +28,6 @@ public class PendingForApprovalsQuery : SearchOrderQuery
         base.Map(context);
 
         ApproverId = context.GetArgument<string>(nameof(ApproverId)) ?? context.GetCurrentUserId();
+        CustomerId = context.GetArgument<string>(nameof(CustomerId));
     }
 }
