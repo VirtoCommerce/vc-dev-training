@@ -13,14 +13,9 @@ namespace VirtoCommerce.XapiExample.ExperienceApi.Queries;
 
 public class ExtendedSearchCustomerOrderQueryHandler : SearchOrderQueryHandler
 {
-    private readonly ICustomerOrderSearchService _searchService;
-    private readonly ICustomerOrderAggregateRepository _orderAggregateRepository;
-
     public ExtendedSearchCustomerOrderQueryHandler(ISearchPhraseParser searchPhraseParser, ICustomerOrderAggregateRepository customerOrderAggregateRepository, IIndexedCustomerOrderSearchService customerOrderSearchService, IMapper mapper, ICustomerOrderSearchService searchService)
         : base(searchPhraseParser, customerOrderAggregateRepository, customerOrderSearchService, mapper)
     {
-        _searchService = searchService;
-        _orderAggregateRepository = customerOrderAggregateRepository;
     }
 
     public override Task<SearchOrderResponse> Handle(SearchCustomerOrderQuery request, CancellationToken cancellationToken)

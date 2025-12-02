@@ -23,7 +23,7 @@ public class ExtendedCustomerOrderDocumentBuilder : CustomerOrderDocumentBuilder
 
         if (order is ExtendedCustomerOrder extendedOrder)
         {
-            document.AddFilterableString("rejectionReason", extendedOrder.RejectionReason);
+            document.AddFilterableStringAndContentString("rejectionReason", extendedOrder.RejectionReason);
         }
 
         return document;
