@@ -38,6 +38,7 @@ using VirtoCommerce.XOrder.Core;
 using VirtoCommerce.XOrder.Core.Commands;
 using VirtoCommerce.XOrder.Core.Queries;
 using VirtoCommerce.XOrder.Core.Schemas;
+using VirtoCommerce.XOrder.Data.Queries;
 
 namespace VirtoCommerce.XapiExample.Web;
 
@@ -83,7 +84,10 @@ public class Module : IModule, IHasConfiguration
 
         // override types
         serviceCollection.OverrideGraphType<CustomerOrderType, ExtendedCustomerOrderType>();  // override CustomerOrder graph type
-        serviceCollection.AddSchemaType<InputChangeOrderStatusExtendedType>().OverrideType<InputChangeOrderStatusType, InputChangeOrderStatusExtendedType>(); // override input type
+        serviceCollection.OverrideGraphType<InputChangeOrderStatusType, InputChangeOrderStatusExtendedType>(); // override input type
+
+        // overrider builder
+        serviceCollection.OverrideSchemaBuilder<SearchOrderQueryBuilder, ExtendedSearchCustomerOrderQueryBuilder>();
 
         // Register GraphQL schema
         _ = new GraphQLBuilder(serviceCollection, builder =>
