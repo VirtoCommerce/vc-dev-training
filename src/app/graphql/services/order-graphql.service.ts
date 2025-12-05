@@ -28,7 +28,6 @@ export class OrderGraphqlService {
     command: IInputApproveCustomerOrderCommand,
     currentOrder: Pick<IDemoCustomerOrderType, 'storeId'>
   ): Observable<Apollo.MutateResult<IApproveOrderMutation>> {
-    // Optimistic response ensures UI updates immediately
     return this.approveOrderGQL.mutate({
       variables: { command },
       optimisticResponse: {
