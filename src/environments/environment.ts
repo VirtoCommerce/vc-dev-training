@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  graphqlUrl: 'https://vcst-devtraining.govirto.com/graphql', // Default development URL
+  graphqlUrl: '/graphql', // Proxied through Angular dev server
 };
 
 

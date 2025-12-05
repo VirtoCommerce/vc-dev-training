@@ -1,0 +1,14 @@
+{
+  "/graphql": {
+    "target": "https://vcst-devtraining.govirto.com",
+    "secure": true,
+    "changeOrigin": true
+  }
+}
+
+
+
+
+
+
+

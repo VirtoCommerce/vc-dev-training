@@ -1,0 +1,8 @@
+query PendingForApproval($approverId: String!) {
+  pendingForApprovals(approverId: $approverId) {
+    totalCount
+    items {
+      ...OrderDetails
+    }
+  }
+}
