@@ -1,0 +1,103 @@
+:host {
+  display: block;
+}
+
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: #fafafa;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  transition: background-color 0.15s;
+}
+
+.order-item:hover {
+  background: #f3f4f6;
+}
+
+.order-item--approved {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.order-item--rejected {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.order-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.order-id {
+  font-weight: 500;
+  color: #1a1a1a;
+  font-size: 0.9375rem;
+}
+
+.order-status {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+}
+
+.status--pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status--approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status--rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.order-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn:hover {
+  opacity: 0.85;
+}
+
+.btn:active {
+  opacity: 0.7;
+}
+
+.btn--approve {
+  background: #10b981;
+  color: white;
+}
+
+.btn--reject {
+  background: white;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+.btn--reject:hover {
+  background: #f9fafb;
+  color: #dc2626;
+  border-color: #fca5a5;
+  opacity: 1;
+}

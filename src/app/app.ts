@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { OrdersListComponent } from './orders/orders-list.component';
+import { OrdersListComponent } from './orders/orders-list/orders-list.component';
 
 @Component({
   selector: 'app-root',
@@ -8,4 +8,3 @@ import { OrdersListComponent } from './orders/orders-list.component';
   styleUrl: './app.css',
 })
 export class App {}
-

@@ -1,0 +1,19 @@
+<div class="order-item"
+     [class.order-item--approved]="order().isApproved"
+     [class.order-item--rejected]="order().status === 'Rejected'">
+  <div class="order-info">
+    <span class="order-id">{{ order().id }}</span>
+    <span class="order-status"
+          [class.status--pending]="!order().isApproved && order().status !== 'Rejected'"
+          [class.status--approved]="order().isApproved"
+          [class.status--rejected]="order().status === 'Rejected'">
+      {{ order().status }}
+    </span>
+  </div>
+
+  <div class="order-actions">
+    <button class="btn btn--approve" (click)="onApprove()">Approve</button>
+    <button class="btn btn--reject" (click)="onReject()">Reject</button>
+  </div>
+</div>
+

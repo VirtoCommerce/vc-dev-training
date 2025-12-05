@@ -1,9 +1,9 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ObservableQuery } from '@apollo/client/core';
-import { OrderGraphqlService } from '../graphql';
-import type { IPendingForApprovalQuery } from '../graphql';
-import { OrderItemComponent } from './order-item/order-item.component';
-import { OrderItemType } from './types';
+import { OrderGraphqlService } from '../../graphql';
+import type { IPendingForApprovalQuery } from '../../graphql';
+import { OrderItemComponent } from '../order-item/order-item.component';
+import { OrderItemType } from '../types';
 
 const APPROVER_ID = 'User1';
 
