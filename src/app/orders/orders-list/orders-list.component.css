@@ -53,18 +53,36 @@
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-.skeleton-info {
-  height: 24px;
-  width: 150px;
+.skeleton-info-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.skeleton-id {
+  height: 1.25rem;
+  width: 16px;
   background: #e5e7eb;
   border-radius: 4px;
 }
 
-.skeleton-actions {
-  height: 32px;
-  width: 140px;
+.skeleton-status {
+  height: 1.25rem;
+  width: 60px;
   background: #e5e7eb;
-  border-radius: 4px;
+  border-radius: 20px;
+}
+
+.skeleton-actions-wrapper {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.skeleton-btn {
+  height: 37px;
+  width: 80px;
+  background: #e5e7eb;
+  border-radius: 8px;
 }
 
 @keyframes pulse {
@@ -115,4 +133,3 @@
   border-color: #fca5a5;
   opacity: 1;
 }
-

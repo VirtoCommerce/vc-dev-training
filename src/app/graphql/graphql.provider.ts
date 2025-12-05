@@ -3,13 +3,14 @@ import { InMemoryCache } from '@apollo/client/core';
 import { Apollo, APOLLO_OPTIONS } from 'apollo-angular';
 import { HttpLink } from 'apollo-angular/http';
 import { environment } from '../../environments/environment';
+import { cacheConfig } from './cache.config';
 
 function apolloOptionsFactory() {
   const httpLink = inject(HttpLink);
 
   return {
     link: httpLink.create({ uri: environment.graphqlUrl }),
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache(cacheConfig),
     defaultOptions: {
       watchQuery: {
         fetchPolicy: 'cache-and-network',

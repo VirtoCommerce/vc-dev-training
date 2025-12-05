@@ -7,8 +7,14 @@
     <ul class="orders-list skeleton-list">
       @for (i of [1,2]; track i) {
         <li class="skeleton-item">
-          <div class="skeleton-info"></div>
-          <div class="skeleton-actions"></div>
+          <div class="skeleton-info-wrapper">
+            <div class="skeleton-id"></div>
+            <div class="skeleton-status"></div>
+          </div>
+          <div class="skeleton-actions-wrapper">
+            <div class="skeleton-btn"></div>
+            <div class="skeleton-btn"></div>
+          </div>
         </li>
       }
     </ul>
@@ -34,4 +40,3 @@
     </ul>
   }
 </div>
-
