@@ -12,15 +12,15 @@ function apolloOptionsFactory() {
     cache: new InMemoryCache(),
     defaultOptions: {
       watchQuery: {
-        fetchPolicy: 'cache-and-network' as const,
-        errorPolicy: 'all' as const,
+        fetchPolicy: 'cache-and-network',
+        errorPolicy: 'all',
       },
       query: {
-        fetchPolicy: 'cache-first' as const,
-        errorPolicy: 'all' as const,
+        fetchPolicy: 'cache-first',
+        errorPolicy: 'all',
       },
       mutate: {
-        errorPolicy: 'all' as const,
+        errorPolicy: 'all',
       },
     },
   };

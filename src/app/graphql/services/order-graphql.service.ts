@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { ApolloQueryResult } from '@apollo/client/core';
+import { ObservableQuery } from '@apollo/client/core';
 import { Apollo } from 'apollo-angular';
 import { Observable } from 'rxjs';
 import {
@@ -20,7 +20,7 @@ export class OrderGraphqlService {
   private readonly approveOrderGQL = inject(IApproveOrderGQL);
   private readonly rejectOrderGQL = inject(IRejectOrderGQL);
 
-  getPendingForApprovals(approverId: string): Observable<ApolloQueryResult<IPendingForApprovalQuery>> {
+  getPendingForApprovals(approverId: string): Observable<ObservableQuery.Result<IPendingForApprovalQuery>> {
     return this.pendingForApprovalGQL.watch({ variables: { approverId } }).valueChanges;
   }
 

@@ -1,14 +1,13 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { ApolloQueryResult } from '@apollo/client/core';
+import { ObservableQuery } from '@apollo/client/core';
 import { OrderGraphqlService } from '../graphql';
 import type { IPendingForApprovalQuery } from '../graphql';
 
-// Improve type safety by extracting items type correctly
 type OrderItemType = NonNullable<
   NonNullable<NonNullable<IPendingForApprovalQuery['pendingForApprovals']>['items']>[number]
 >;
 
-const APPROVER_ID = 'User1'; // TODO: Get from auth context
+const APPROVER_ID = 'User1';
 
 @Component({
   selector: 'app-orders-list',
@@ -238,6 +237,7 @@ const APPROVER_ID = 'User1'; // TODO: Get from auth context
     }
   `,
 })
+
 export class OrdersListComponent implements OnInit {
   private readonly orderService = inject(OrderGraphqlService);
 
@@ -255,10 +255,8 @@ export class OrdersListComponent implements OnInit {
     this.error.set(null);
 
     this.orderService.getPendingForApprovals(APPROVER_ID).subscribe({
-      next: (result: ApolloQueryResult<IPendingForApprovalQuery>) => {
-        // Extract items correctly from the result
+      next: (result: ObservableQuery.Result<IPendingForApprovalQuery>) => {
         const pendingForApprovals = result.data?.pendingForApprovals;
-        // Force cast to avoid DeepPartial issues from Apollo types
         const items = (pendingForApprovals?.items?.filter((i): i is OrderItemType => !!i) ?? []) as OrderItemType[];
         this.orders.set(items);
         this.loading.set(result.loading);
@@ -287,9 +285,6 @@ export class OrdersListComponent implements OnInit {
     if (!order) return;
 
     this.orderService.approveOrder({ orderId }, order).subscribe({
-      next: () => {
-        // No manual update needed - Apollo Cache handles optimistic UI and final update
-      },
       error: (err) => console.error('Failed to approve order:', err),
     });
   }
@@ -299,9 +294,6 @@ export class OrdersListComponent implements OnInit {
     if (!order) return;
 
     this.orderService.rejectOrder({ orderId }, order).subscribe({
-      next: () => {
-        // No manual update needed - Apollo Cache handles optimistic UI and final update
-      },
       error: (err) => console.error('Failed to reject order:', err),
     });
   }
