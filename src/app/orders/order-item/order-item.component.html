@@ -12,6 +12,9 @@
   </div>
 
   <div class="order-actions">
+    @if (error()) {
+      <div class="error-message">{{ error() }}</div>
+    }
     <button class="btn btn--approve" (click)="onApprove()">Approve</button>
     <button class="btn btn--reject" (click)="onReject()">Reject</button>
   </div>

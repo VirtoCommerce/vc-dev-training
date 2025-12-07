@@ -9,6 +9,7 @@ import type { OrderItemType } from '../types';
 })
 export class OrderItemComponent {
   readonly order = input.required<OrderItemType>();
+  readonly error = input<string | null>(null);
   readonly approve = output<string>();
   readonly reject = output<string>();
 
@@ -20,4 +21,5 @@ export class OrderItemComponent {
     this.reject.emit(this.order().id);
   }
 }
+
 

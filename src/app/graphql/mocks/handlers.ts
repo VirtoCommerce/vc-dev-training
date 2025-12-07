@@ -34,12 +34,12 @@ export const handlers = [
       data: {
         approveOrder: { id: command.orderId, isApproved: true, status: "Approved", storeId: "Electronics", __typename: "DemoCustomerOrderType" }
       },
-      // errors: [
-      //   {
-      //     message: "Order not found",
-      //     path: ["approveOrder"],
-      //   }
-      // ]
+      errors: command.orderId === "2" ? [
+        {
+          message: "Order not found",
+          path: ["approveOrder"],
+        }
+      ] : undefined
     });
   }),
 ];

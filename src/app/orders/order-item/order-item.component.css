@@ -64,6 +64,13 @@
 .order-actions {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-right: 0.5rem;
 }
 
 .btn {
@@ -101,4 +108,3 @@
   border-color: #fca5a5;
   opacity: 1;
 }
-

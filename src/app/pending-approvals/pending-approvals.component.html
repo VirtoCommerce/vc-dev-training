@@ -2,6 +2,13 @@
   <h2 class="orders-title">Orders</h2>
   <p class="orders-count">Total: {{ totalCount() }}</p>
 
+  @if (error()) {
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+      <strong class="font-bold">Error: </strong>
+      <span class="block sm:inline">{{ error() }}</span>
+    </div>
+  }
+
   @if (loading()) {
     <!-- Skeleton Loading State -->
     <ul class="orders-list skeleton-list">
@@ -24,6 +31,7 @@
         <li>
           <app-order-item
             [order]="order"
+            [error]="getOrderError(order.id)"
             (approve)="approveOrder($event)"
             (reject)="rejectOrder($event)">
           </app-order-item>
