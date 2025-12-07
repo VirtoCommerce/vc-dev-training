@@ -1,0 +1,6 @@
+fragment OrderDetails on DemoCustomerOrderType {
+  id
+  isApproved
+  status
+  storeId
+}

@@ -1,0 +1,5 @@
+mutation ApproveOrder($command: InputApproveCustomerOrderCommand!) {
+  approveOrder(command: $command) {
+    ...OrderDetails
+  }
+}

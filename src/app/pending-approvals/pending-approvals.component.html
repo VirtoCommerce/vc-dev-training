@@ -1,0 +1,15 @@
+<div class="orders">
+  <h2>Orders</h2>
+
+  <ul>
+    @for (item of pendingApprovals$ | async; track item.id) {
+      <li>
+        <strong>ID:</strong> {{ item.id }} |
+        <strong>Status:</strong> {{ item.status }}
+      </li>
+    } @empty {
+      <li>No pending approvals.</li>
+    }
+  </ul>
+</div>
+

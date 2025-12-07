@@ -1,0 +1,5 @@
+mutation RejectOrder($command: InputRejectCustomerOrderCommand!) {
+  rejectOrder(command: $command) {
+    ...OrderDetails
+  }
+}
