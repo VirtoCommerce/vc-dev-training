@@ -1,15 +1,18 @@
-<div class="orders">
-  <h2>Orders</h2>
+<div class="orders-container">
+  <h2 class="orders-title">Orders</h2>
+  <p class="orders-count">Total: {{ totalCount() }}</p>
 
-  <ul>
-    @for (item of pendingApprovals$ | async; track item.id) {
+  <ul class="orders-list">
+    @for (order of orders(); track order.id) {
       <li>
-        <strong>ID:</strong> {{ item.id }} |
-        <strong>Status:</strong> {{ item.status }}
+        <app-order-item
+          [order]="order"
+          (approve)="approveOrder($event)"
+          (reject)="rejectOrder($event)">
+        </app-order-item>
       </li>
     } @empty {
-      <li>No pending approvals.</li>
+      <li class="orders-empty">No orders</li>
     }
   </ul>
 </div>
-

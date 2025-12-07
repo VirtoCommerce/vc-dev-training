@@ -1,14 +1,36 @@
-.orders {
-  padding: 1rem;
+.orders-container {
+  max-width: 560px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-ul {
-  list-style-type: none;
+.orders-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.orders-count {
+  margin: 0 0 1.5rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.orders-list {
+  list-style: none;
+  margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-li {
-  padding: 0.5rem;
-  border-bottom: 1px solid #eee;
+.orders-empty {
+  text-align: center;
+  padding: 3rem;
+  color: #9ca3af;
 }
-
