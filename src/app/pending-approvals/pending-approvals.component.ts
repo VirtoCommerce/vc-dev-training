@@ -1,4 +1,5 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { OrderGraphqlService } from '../graphql/services/order-graphql.service';
 import { OrderItemComponent } from '../orders/order-item/order-item.component';
 import { OrderItemType } from '../orders/types';
@@ -12,28 +13,24 @@ const APPROVER_ID = '';
   templateUrl: './pending-approvals.component.html',
   styleUrl: './pending-approvals.component.css',
 })
-export class PendingApprovalsComponent implements OnInit {
+export class PendingApprovalsComponent {
   private readonly orderService = inject(OrderGraphqlService);
 
-  protected readonly orders = signal<OrderItemType[]>([]);
-  protected readonly totalCount = computed(() => this.orders().length);
+  private readonly pendingApprovalsResult = toSignal(
+    this.orderService.getPendingForApprovals(APPROVER_ID)
+  );
 
-  ngOnInit(): void {
-    this.loadOrders();
-  }
+  protected readonly loading = computed(() => this.pendingApprovalsResult()?.loading ?? true);
 
-  loadOrders(): void {
-    this.orderService.getPendingForApprovals(APPROVER_ID).subscribe({
-      next: (result) => {
-        const pendingForApprovals = result.data?.pendingForApprovals;
-        const items = (pendingForApprovals?.items?.filter((i): i is OrderItemType => !!i) ?? []) as OrderItemType[];
-        this.orders.set(items);
-      },
-      error: (err) => {
-        console.error('Failed to load orders:', err);
-      },
-    });
-  }
+  protected readonly orders = computed(() => {
+    const result = this.pendingApprovalsResult();
+    const pendingForApprovals = result?.data?.pendingForApprovals;
+    return (pendingForApprovals?.items?.filter((i): i is OrderItemType => !!i) ?? []) as OrderItemType[];
+  });
+
+  protected readonly totalCount = computed(() => {
+    return this.pendingApprovalsResult()?.data?.pendingForApprovals?.totalCount ?? 0;
+  });
 
   approveOrder(orderId: string): void {
     this.orderService.approveOrder({ orderId }).subscribe({

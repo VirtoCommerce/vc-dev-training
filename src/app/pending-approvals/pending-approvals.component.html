@@ -2,17 +2,35 @@
   <h2 class="orders-title">Orders</h2>
   <p class="orders-count">Total: {{ totalCount() }}</p>
 
-  <ul class="orders-list">
-    @for (order of orders(); track order.id) {
-      <li>
-        <app-order-item
-          [order]="order"
-          (approve)="approveOrder($event)"
-          (reject)="rejectOrder($event)">
-        </app-order-item>
-      </li>
-    } @empty {
-      <li class="orders-empty">No orders</li>
-    }
-  </ul>
+  @if (loading()) {
+    <!-- Skeleton Loading State -->
+    <ul class="orders-list skeleton-list">
+      @for (i of [1, 2, 3, 4, 5, 6, 7].fill(0); track i) {
+        <li class="skeleton-item">
+          <div class="skeleton-info-wrapper">
+            <div class="skeleton-id"></div>
+            <div class="skeleton-status"></div>
+          </div>
+          <div class="skeleton-actions-wrapper">
+            <div class="skeleton-btn"></div>
+            <div class="skeleton-btn"></div>
+          </div>
+        </li>
+      }
+    </ul>
+  } @else {
+    <ul class="orders-list">
+      @for (order of orders(); track order.id) {
+        <li>
+          <app-order-item
+            [order]="order"
+            (approve)="approveOrder($event)"
+            (reject)="rejectOrder($event)">
+          </app-order-item>
+        </li>
+      } @empty {
+        <li class="orders-empty">No orders</li>
+      }
+    </ul>
+  }
 </div>

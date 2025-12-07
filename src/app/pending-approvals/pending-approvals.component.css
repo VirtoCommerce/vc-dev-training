@@ -34,3 +34,58 @@
   padding: 3rem;
   color: #9ca3af;
 }
+
+/* Skeleton Styles */
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skeleton-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: #fafafa;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.skeleton-info-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.skeleton-id {
+  height: 1.25rem;
+  width: 16px;
+  background: #e5e7eb;
+  border-radius: 4px;
+}
+
+.skeleton-status {
+  height: 1.25rem;
+  width: 60px;
+  background: #e5e7eb;
+  border-radius: 20px;
+}
+
+.skeleton-actions-wrapper {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.skeleton-btn {
+  height: 37px;
+  width: 80px;
+  background: #e5e7eb;
+  border-radius: 8px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
